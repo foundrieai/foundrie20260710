@@ -1,0 +1,371 @@
+'use client';
+
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ReportCard } from '@/components/dashboard/report-card';
+import { BarChart, CheckCircle2, Lightbulb, Search, ListFilter, Loader2, ChevronDown, Star, Shield, Users, Database, ArrowRight, Wrench, Activity } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Report, User as UserProfileData } from '@/lib/types';
+import { calculateOverallScore } from '@/lib/report-helpers';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useMemo } from 'react';
+import { platformTools } from '@/lib/platform';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+function StatCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
+  return (
+    <Card className="glass-card p-6 flex items-center gap-4">
+      <div className="p-3 bg-primary/10 rounded-lg">{icon}</div>
+      <div>
+        <p className="text-muted-foreground">{title}</p>
+        <p className="text-2xl font-bold font-headline">{value}</p>
+      </div>
+    </Card>
+  );
+}
+
+const adminEmails = new Set(['hello@thesiliconhill.com', 'RobertKWilliams.DC@gmail.com']);
+
+type SortOption = 'newest' | 'oldest' | 'highest-score' | 'lowest-score';
+
+function ToolLaunchCard({
+  name,
+  label,
+  href,
+  status,
+  icon,
+}: {
+  name: string;
+  label: string;
+  href: string;
+  status: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.045] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff7a00]/50 hover:bg-white/[0.07]"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,122,0,0.18),transparent_34%),radial-gradient(circle_at_0%_100%,rgba(230,0,201,0.12),transparent_36%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="grid h-11 w-11 place-items-center rounded-lg border border-white/10 bg-black/30 text-[#ffaf54]">
+          {icon}
+        </div>
+        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">
+          {status}
+        </span>
+      </div>
+      <div className="relative mt-7">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/45">{label}</p>
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <h3 className="text-2xl font-bold tracking-normal text-white">{name}</h3>
+          <ArrowRight className="h-4 w-4 text-white/50 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function AdminCommandCenter({
+  usersCount,
+  reportsCount,
+  isLoading,
+}: {
+  usersCount: number;
+  reportsCount: number;
+  isLoading: boolean;
+}) {
+  return (
+    <section className="mb-10 overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(135deg,rgba(244,241,246,0.075),rgba(244,241,246,0.025))] shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
+      <div className="relative p-6 md:p-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(255,196,0,0.16),transparent_32%),radial-gradient(circle_at_100%_12%,rgba(230,0,201,0.16),transparent_36%)]" />
+        <div className="relative grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ff7a00]/35 bg-[#ff7a00]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#ffc400]">
+              <Shield className="h-4 w-4" />
+              Administrator Console
+            </div>
+            <h2 className="text-4xl font-bold tracking-normal text-white md:text-5xl">Platform command center</h2>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-white/62 md:text-base">
+              Access every suite, flagship tool, platform control surface, and user-data view from one admin-grade dashboard.
+            </p>
+            <div className="mt-7 grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-white/10 bg-black/24 p-4">
+                <Users className="mb-3 h-5 w-5 text-[#ffaf54]" />
+                <p className="text-xs uppercase tracking-[0.18em] text-white/42">Users</p>
+                <p className="mt-1 text-3xl font-bold text-white">{isLoading ? '...' : usersCount}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/24 p-4">
+                <Database className="mb-3 h-5 w-5 text-[#ff6f9f]" />
+                <p className="text-xs uppercase tracking-[0.18em] text-white/42">Reports</p>
+                <p className="mt-1 text-3xl font-bold text-white">{isLoading ? '...' : reportsCount}</p>
+              </div>
+            </div>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Button asChild className="rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-6 font-bold text-black hover:opacity-90">
+                <Link href="/admin">
+                  Open Admin
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-full border-white/20 bg-black/20 px-6 text-white hover:bg-white/10">
+                <Link href="/admin">User Data</Link>
+              </Button>
+            </div>
+          </div>
+          <div>
+            <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-white/42">Tool access</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {platformTools.map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <ToolLaunchCard
+                    key={tool.name}
+                    name={tool.name}
+                    label={tool.label}
+                    href={tool.href}
+                    status={tool.status}
+                    icon={<Icon className="h-5 w-5" />}
+                  />
+                );
+              })}
+              <ToolLaunchCard name="Admin Data" label="Platform operations" href="/admin" status="secure" icon={<Wrench className="h-5 w-5" />} />
+              <ToolLaunchCard name="Activity Vault" label="Founder data" href="/vault" status="live" icon={<Activity className="h-5 w-5" />} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DashboardPageInner() {
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const isAdmin = !!user && (adminEmails.has(user.email || '') || (user as any)?.admin === true);
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, isUserLoading, router]);
+
+  // FIX 2: Guard query construction with authenticated user
+  const reportsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return collection(firestore, 'users', user.uid, 'reports');
+  }, [firestore, user]);
+
+  const { data: reports, isLoading: isReportsLoading } = useCollection<Report>(reportsQuery);
+
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore || !user || !isAdmin) return null;
+    return collection(firestore, 'users');
+  }, [firestore, user, isAdmin]);
+
+  const { data: adminUsers, isLoading: isAdminUsersLoading } = useCollection<UserProfileData>(usersQuery);
+  const adminReportCount = useMemo(
+    () => adminUsers?.reduce((total, platformUser) => total + (platformUser.reportsGenerated || 0), 0) || 0,
+    [adminUsers]
+  );
+
+  const completedReports = useMemo(() => 
+    reports?.filter(r => r.status === 'complete' && r.scores) || [],
+    [reports]
+  );
+
+  const averageScore = useMemo(() => {
+    if (completedReports.length === 0) return '0.0';
+    const total = completedReports.reduce((acc, report) => acc + calculateOverallScore(report.scores), 0);
+    return (total / completedReports.length).toFixed(1);
+  }, [completedReports]);
+
+  const topIdea = useMemo(() => {
+    if (completedReports.length === 0) return null;
+    return [...completedReports].sort((a, b) => calculateOverallScore(b.scores) - calculateOverallScore(a.scores))[0];
+  }, [completedReports]);
+
+  const processedReports = useMemo(() => {
+    if (!reports) return [];
+
+    // Filter
+    let filtered = reports.filter(report => 
+      report.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Sort
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'highest-score':
+          return calculateOverallScore(b.scores) - calculateOverallScore(a.scores);
+        case 'lowest-score':
+          return calculateOverallScore(a.scores) - calculateOverallScore(b.scores);
+        default:
+          return 0;
+      }
+    });
+  }, [reports, searchQuery, sortBy]);
+
+  const getSortLabel = () => {
+    switch (sortBy) {
+      case 'newest': return 'Newest';
+      case 'oldest': return 'Oldest';
+      case 'highest-score': return 'Highest Score';
+      case 'lowest-score': return 'Lowest Score';
+    }
+  };
+
+  if (isUserLoading || !user) {
+    return (
+        <div className="min-h-screen bg-background">
+            <main className="container py-8 text-center">
+                <Loader2 className="mx-auto h-12 w-12 animate-spin" />
+            </main>
+        </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <main className="container py-8">
+        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-white/42">Foundrie AI Dashboard</p>
+            <h1 className="text-4xl font-bold tracking-normal text-white md:text-6xl">Welcome back{user.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}</h1>
+          </div>
+          <Button asChild variant="outline" className="w-fit rounded-full border-white/20 bg-black/20 px-6 text-white hover:bg-white/10">
+            <Link href="/company/launchcode">Open LaunchCode</Link>
+          </Button>
+        </div>
+
+        {isAdmin && (
+          <AdminCommandCenter
+            usersCount={adminUsers?.length || 0}
+            reportsCount={adminReportCount}
+            isLoading={isAdminUsersLoading}
+          />
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <StatCard title="Ideas Validated" value={reports?.length.toString() || '0'} icon={<BarChart className="text-primary h-6 w-6" />} />
+          <StatCard title="Average Score" value={`${averageScore} / 10`} icon={<Star className="text-primary h-6 w-6" />} />
+          <Card className="glass-card p-6 flex flex-col justify-between gap-4 bg-primary/5 border-primary/20">
+            <div>
+              <p className="text-muted-foreground">Journey Entry</p>
+              <p className="text-xl font-bold font-headline text-primary">Start with Ideation or Validation</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild className="shadow-button-primary flex-1">
+                <Link href="/ideation"><Lightbulb className="mr-2 h-4 w-4" /> Ideation</Link>
+              </Button>
+              <Button asChild variant="outline" className="flex-1">
+                <Link href="/new"><CheckCircle2 className="mr-2 h-4 w-4" /> Validation</Link>
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h2 className="text-2xl font-bold font-headline">Your Validations</h2>
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search ideas..." 
+                className="pl-9 w-full sm:w-64" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[120px]">
+                  <ListFilter className="mr-2 h-4 w-4" /> 
+                  {getSortLabel()}
+                  <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setSortBy('newest')}>Newest First</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('oldest')}>Oldest First</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('highest-score')}>Highest Score</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('lowest-score')}>Lowest Score</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {isReportsLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[350px] w-full" />)}
+            </div>
+        )}
+
+        {!isReportsLoading && processedReports.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {processedReports.map(report => (
+              <ReportCard key={report.id} report={report} />
+            ))}
+          </div>
+        ) : (
+          !isReportsLoading && (
+            <Card className="glass-card text-center py-20 px-6">
+              <h3 className="text-xl font-bold font-headline">
+                {searchQuery ? "No matching ideas found" : "No ideas validated yet"}
+              </h3>
+              <p className="text-muted-foreground mt-2 mb-6">
+                {searchQuery ? "Try a different search term." : "Start by submitting your first startup idea for validation."}
+              </p>
+              {!searchQuery && (
+                <div className="flex flex-col sm:flex-row justify-center gap-3">
+                  <Button asChild className="shadow-button-primary hover:shadow-button-primary-hover">
+                    <Link href="/ideation"><Lightbulb className="mr-2 h-4 w-4" /> Help Me Find an Idea</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link href="/new"><CheckCircle2 className="mr-2 h-4 w-4" /> Validate My Idea</Link>
+                  </Button>
+                </div>
+              )}
+            </Card>
+          )
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="container py-8 text-center">
+          <Loader2 className="mx-auto h-12 w-12 animate-spin" />
+        </main>
+      </div>
+    );
+  }
+
+  return <DashboardPageInner />;
+}

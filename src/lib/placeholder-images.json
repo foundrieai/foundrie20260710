@@ -1,0 +1,58 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-dashboard",
+      "description": "Sophisticated dashboard preview for LAUNCHCODE.",
+      "imageUrl": "https://picsum.photos/seed/launch1/1200/800",
+      "imageHint": "dashboard software"
+    },
+    {
+      "id": "logo-1",
+      "description": "Tech Partner Logo 1",
+      "imageUrl": "https://picsum.photos/seed/logo1/200/80",
+      "imageHint": "logo tech"
+    },
+    {
+      "id": "logo-2",
+      "description": "Tech Partner Logo 2",
+      "imageUrl": "https://picsum.photos/seed/logo2/200/80",
+      "imageHint": "logo company"
+    },
+    {
+      "id": "logo-3",
+      "description": "Tech Partner Logo 3",
+      "imageUrl": "https://picsum.photos/seed/logo3/200/80",
+      "imageHint": "logo brand"
+    },
+    {
+      "id": "logo-4",
+      "description": "Tech Partner Logo 4",
+      "imageUrl": "https://picsum.photos/seed/logo4/200/80",
+      "imageHint": "logo minimalist"
+    },
+    {
+      "id": "testimonial-1",
+      "description": "Avatar of a successful founder.",
+      "imageUrl": "https://picsum.photos/seed/user1/100/100",
+      "imageHint": "founder person"
+    },
+    {
+      "id": "testimonial-2",
+      "description": "Avatar of a venture capitalist.",
+      "imageUrl": "https://picsum.photos/seed/user2/100/100",
+      "imageHint": "professional person"
+    },
+    {
+      "id": "benefits-illustration",
+      "description": "Illustration showing startup growth.",
+      "imageUrl": "https://picsum.photos/seed/growth/800/600",
+      "imageHint": "growth chart"
+    },
+    {
+      "id": "founder-story",
+      "description": "The founder in a modern office.",
+      "imageUrl": "https://picsum.photos/seed/story/800/600",
+      "imageHint": "office founder"
+    }
+  ]
+}
