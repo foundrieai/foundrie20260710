@@ -3,7 +3,16 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
+const SKIP_ROLES = new Set(['combobox', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'switch', 'option', 'checkbox', 'radio']);
+
 function appendArrowToTextNode(element: Element) {
+  // Opt-out escape hatch and interactive UI primitives never get a chevron.
+  if (element.hasAttribute('data-no-arrow')) return;
+  const role = element.getAttribute('role');
+  if (role && SKIP_ROLES.has(role)) return;
+  if (element.getAttribute('aria-haspopup')) return;
+  if (element.closest('[role="dialog"], [role="menu"], [role="listbox"], [role="tablist"]')) return;
+
   const text = element.textContent?.replace(/\s+/g, ' ').trim() || '';
   if (!/[A-Za-z0-9]/.test(text) || text.endsWith('>')) return;
   if (element.getAttribute('aria-label') && text.length <= 2) return;
@@ -29,8 +38,11 @@ export function ActionArrowNormalizer() {
 
   useEffect(() => {
     const normalize = () => {
+      // Restrict to anchor-based CTAs (navigation actions) plus explicit opt-ins.
+      // Utility <button> controls (reset, save, filters, dialog actions) are left
+      // alone; genuine CTA buttons can opt in with data-action-button.
       document
-        .querySelectorAll('button, a[role="button"], a.inline-flex, [data-action-button]')
+        .querySelectorAll('a[role="button"], a.inline-flex, [data-action-button]')
         .forEach(appendArrowToTextNode);
     };
 

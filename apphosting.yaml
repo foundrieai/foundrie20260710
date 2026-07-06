@@ -7,3 +7,13 @@ runConfig:
   maxInstances: 1
   # Increase the timeout for long-running AI generation tasks
   timeoutSeconds: 300
+
+# Environment variables and secrets available to the deployed backend.
+# Create the secret first, then grant access to the backend:
+#   firebase apphosting:secrets:set gemini-api-key
+#   firebase apphosting:secrets:grantaccess gemini-api-key --backend <backend-id>
+env:
+  - variable: GEMINI_API_KEY
+    secret: gemini-api-key
+    availability:
+      - RUNTIME

@@ -54,6 +54,7 @@ export interface Report {
   tagline?: string;
   executiveSummary?: string;
   isPromoted?: boolean;
+  isShared?: boolean;
   content: {
     purpose: string;
     problem: string;

@@ -4,22 +4,29 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ReportCard } from '@/components/dashboard/report-card';
-import { BarChart, CheckCircle2, Lightbulb, Search, ListFilter, Loader2, ChevronDown, Star, Shield, Users, Database, ArrowRight, Wrench, Activity } from 'lucide-react';
+import { BarChart, CheckCircle2, Lightbulb, Search, ListFilter, Loader2, ChevronDown, Star, Shield, Users, Database, ArrowRight, Wrench, Activity, Eye, LayoutGrid } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Report, User as UserProfileData } from '@/lib/types';
 import { calculateOverallScore } from '@/lib/report-helpers';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
-import { platformTools } from '@/lib/platform';
+import { platformTools, launchCodeTool, resumaitTool, brandForgeTool, type PlatformTool } from '@/lib/platform';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const ACCENT_HEX: Record<PlatformTool['accent'], string> = {
+  gold: '#ffc400', ember: '#ff7a00', verm: '#ff3000', rose: '#ff0055', mag: '#e600c9',
+};
+
+const VIEW_AS_USER_KEY = 'foundrie-dashboard-view-as-user';
 
 function StatCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
   return (
@@ -72,6 +79,70 @@ function ToolLaunchCard({
         </div>
       </div>
     </Link>
+  );
+}
+
+/** Primary product tile — the way a subscriber jumps into any suite and picks up ongoing work. */
+function ProductCard({ tool, activity }: { tool: PlatformTool; activity: string }) {
+  const Icon = tool.icon;
+  const accent = ACCENT_HEX[tool.accent];
+  return (
+    <Link
+      href={tool.href}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07]"
+    >
+      <span className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-[0.18] bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] opacity-80 transition-transform duration-500 group-hover:scale-x-100" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: `radial-gradient(circle at 82% 0%, ${accent}22, transparent 42%)` }}
+      />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="grid h-12 w-12 place-items-center rounded-xl border border-white/10 bg-black/30" style={{ color: accent }}>
+          <Icon className="h-6 w-6" />
+        </div>
+        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">
+          {tool.suite} suite
+        </span>
+      </div>
+      <div className="relative mt-6 flex-grow">
+        <h3 className="text-2xl font-bold tracking-normal text-white">{tool.name}</h3>
+        <p className="mt-2 text-sm leading-6 text-white/60 line-clamp-2">{tool.description}</p>
+      </div>
+      <div className="relative mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+        <span className="text-sm font-semibold text-white/72">{activity}</span>
+        <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: accent }}>
+          {tool.cta}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function ViewToggle({ viewAsUser, onChange }: { viewAsUser: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="inline-flex items-center rounded-full border border-white/15 bg-black/30 p-1">
+      <button
+        type="button"
+        onClick={() => onChange(false)}
+        className={cn(
+          'inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.14em] transition',
+          !viewAsUser ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80'
+        )}
+      >
+        <Shield className="h-3.5 w-3.5" /> Admin
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange(true)}
+        className={cn(
+          'inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.14em] transition',
+          viewAsUser ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80'
+        )}
+      >
+        <Eye className="h-3.5 w-3.5" /> User view
+      </button>
+    </div>
   );
 }
 
@@ -154,7 +225,11 @@ function DashboardPageInner() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [viewAsUser, setViewAsUser] = useState(false);
+  const [brandForgeActive, setBrandForgeActive] = useState(false);
+
   const isAdmin = !!user && (adminEmails.has(user.email || '') || (user as any)?.admin === true);
+  const effectiveAdmin = isAdmin && !viewAsUser;
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -162,7 +237,26 @@ function DashboardPageInner() {
     }
   }, [user, isUserLoading, router]);
 
-  // FIX 2: Guard query construction with authenticated user
+  // Restore the admin's chosen view mode across navigations.
+  useEffect(() => {
+    try {
+      setViewAsUser(window.localStorage.getItem(VIEW_AS_USER_KEY) === '1');
+    } catch { /* ignore */ }
+  }, []);
+
+  const changeViewAsUser = (value: boolean) => {
+    setViewAsUser(value);
+    try { window.localStorage.setItem(VIEW_AS_USER_KEY, value ? '1' : '0'); } catch { /* ignore */ }
+  };
+
+  // Detect in-progress BrandForge work (persisted locally per user).
+  useEffect(() => {
+    if (!user) return;
+    try {
+      setBrandForgeActive(!!window.localStorage.getItem(`foundrie_brandforge_${user.uid}_identities`));
+    } catch { /* ignore */ }
+  }, [user]);
+
   const reportsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return collection(firestore, 'users', user.uid, 'reports');
@@ -181,7 +275,7 @@ function DashboardPageInner() {
     [adminUsers]
   );
 
-  const completedReports = useMemo(() => 
+  const completedReports = useMemo(() =>
     reports?.filter(r => r.status === 'complete' && r.scores) || [],
     [reports]
   );
@@ -192,22 +286,13 @@ function DashboardPageInner() {
     return (total / completedReports.length).toFixed(1);
   }, [completedReports]);
 
-  const topIdea = useMemo(() => {
-    if (completedReports.length === 0) return null;
-    return [...completedReports].sort((a, b) => calculateOverallScore(b.scores) - calculateOverallScore(a.scores))[0];
-  }, [completedReports]);
-
   const processedReports = useMemo(() => {
     if (!reports) return [];
-
-    // Filter
-    let filtered = reports.filter(report => 
+    let filtered = reports.filter(report =>
       report.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    // Sort
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
@@ -233,13 +318,19 @@ function DashboardPageInner() {
     }
   };
 
+  const launchCodeActivity = reports && reports.length > 0
+    ? `${reports.length} ${reports.length === 1 ? 'idea' : 'ideas'} · avg ${averageScore} / 10`
+    : 'Validate your first idea';
+  const resumaitActivity = 'Optimize and save your resume';
+  const brandForgeActivity = brandForgeActive ? 'Continue where you left off' : 'Build your professional brand';
+
   if (isUserLoading || !user) {
     return (
-        <div className="min-h-screen bg-background">
-            <main className="container py-8 text-center">
-                <Loader2 className="mx-auto h-12 w-12 animate-spin" />
-            </main>
-        </div>
+      <div className="min-h-screen bg-background">
+        <main className="container py-8 text-center">
+          <Loader2 className="mx-auto h-12 w-12 animate-spin" />
+        </main>
+      </div>
     );
   }
 
@@ -251,18 +342,50 @@ function DashboardPageInner() {
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-white/42">Foundrie AI Dashboard</p>
             <h1 className="text-4xl font-bold tracking-normal text-white md:text-6xl">Welcome back{user.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}</h1>
           </div>
-          <Button asChild variant="outline" className="w-fit rounded-full border-white/20 bg-black/20 px-6 text-white hover:bg-white/10">
-            <Link href="/company/launchcode">Open LaunchCode</Link>
-          </Button>
+          {isAdmin && <ViewToggle viewAsUser={viewAsUser} onChange={changeViewAsUser} />}
         </div>
 
-        {isAdmin && (
+        {isAdmin && viewAsUser && (
+          <div className="mb-6 flex flex-col items-start justify-between gap-3 rounded-xl border border-[#ffc400]/30 bg-[#ffc400]/10 px-5 py-3 sm:flex-row sm:items-center">
+            <p className="inline-flex items-center gap-2 text-sm text-[#ffe08a]">
+              <Eye className="h-4 w-4" /> You are previewing the standard user dashboard. Admin surfaces are hidden.
+            </p>
+            <button
+              type="button"
+              onClick={() => changeViewAsUser(false)}
+              className="text-sm font-bold text-[#ffc400] underline-offset-4 hover:underline"
+            >
+              Return to admin view
+            </button>
+          </div>
+        )}
+
+        {effectiveAdmin && (
           <AdminCommandCenter
             usersCount={adminUsers?.length || 0}
             reportsCount={adminReportCount}
             isLoading={isAdminUsersLoading}
           />
         )}
+
+        {/* YOUR PRODUCTS — every subscribed suite in one place */}
+        <section className="mb-12">
+          <div className="mb-5 flex items-center gap-2">
+            <LayoutGrid className="h-4 w-4 text-white/45" />
+            <h2 className="text-xs font-bold uppercase tracking-[0.22em] text-white/45">Your products</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <ProductCard tool={launchCodeTool} activity={launchCodeActivity} />
+            <ProductCard tool={resumaitTool} activity={resumaitActivity} />
+            <ProductCard tool={brandForgeTool} activity={brandForgeActivity} />
+          </div>
+        </section>
+
+        {/* YOUR LAUNCHCODE WORKSPACE */}
+        <div className="mb-5 flex items-center gap-2">
+          <BarChart className="h-4 w-4 text-white/45" />
+          <h2 className="text-xs font-bold uppercase tracking-[0.22em] text-white/45">Your LaunchCode workspace</h2>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <StatCard title="Ideas Validated" value={reports?.length.toString() || '0'} icon={<BarChart className="text-primary h-6 w-6" />} />
@@ -288,18 +411,18 @@ function DashboardPageInner() {
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <div className="relative flex-grow">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search ideas..." 
-                className="pl-9 w-full sm:w-64" 
+              <Input
+                placeholder="Search ideas..."
+                className="pl-9 w-full sm:w-64"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="min-w-[120px]">
-                  <ListFilter className="mr-2 h-4 w-4" /> 
+                  <ListFilter className="mr-2 h-4 w-4" />
                   {getSortLabel()}
                   <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                 </Button>
@@ -315,9 +438,9 @@ function DashboardPageInner() {
         </div>
 
         {isReportsLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[350px] w-full" />)}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[350px] w-full" />)}
+          </div>
         )}
 
         {!isReportsLoading && processedReports.length > 0 ? (

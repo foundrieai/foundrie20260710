@@ -59,6 +59,12 @@ const launchCodeEntries = [
   },
 ];
 
+export const metadata = {
+  title: 'LaunchCode',
+  description:
+    'The evidence-first founder operating system: ideation, validation, and phase-by-phase execution from raw idea to fundable company.',
+};
+
 export default function LaunchCodeHubPage() {
   return (
     <main className="min-h-screen bg-[#08070c] text-white">

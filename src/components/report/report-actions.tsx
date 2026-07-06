@@ -18,6 +18,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { useFirestore, useUser } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { Report } from '@/lib/types';
@@ -25,9 +28,7 @@ import { sectionHeadings } from '@/lib/report-helpers';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import pptxgen from "pptxgenjs";
 import { generatePitchDeckContent } from '@/ai/flows/generate-pitch-deck-content';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ImageRun, Footer, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
 
 interface ReportActionsProps {
@@ -62,21 +63,47 @@ function scrubContent(text: string): { scrubbed: string; wasModified: boolean } 
   return { scrubbed, wasModified };
 }
 
-function ShareDialog({ open, onOpenChange, reportTitle }: { open: boolean; onOpenChange: (open: boolean) => void; reportTitle: string }) {
+function ShareDialog({ open, onOpenChange, report }: { open: boolean; onOpenChange: (open: boolean) => void; report: Report }) {
   const [copied, setCopied] = useState(false);
+  const [enabled, setEnabled] = useState(!!report.isShared);
+  const [busy, setBusy] = useState(false);
   const { toast } = useToast();
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const isOwner = !!user && user.uid === report.userId;
+  const shareUrl = typeof window !== 'undefined' ? window.location.href.split('?')[0] : '';
+
+  useEffect(() => { setEnabled(!!report.isShared); }, [report.isShared]);
+
+  const toggleShare = async (next: boolean) => {
+    if (!firestore || !isOwner) return;
+    setBusy(true);
+    try {
+      await updateDoc(doc(firestore, 'users', report.userId, 'reports', report.id), { isShared: next });
+      setEnabled(next);
+      toast({
+        title: next ? 'Sharing enabled' : 'Sharing disabled',
+        description: next
+          ? 'Anyone with the link can now view this report.'
+          : 'The link no longer works. Only you can view this report.',
+      });
+    } catch {
+      toast({ variant: 'destructive', title: 'Could not update sharing', description: 'Please try again.' });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    toast({ title: "Link Copied", description: "Private report link copied to clipboard." });
+    toast({ title: 'Link Copied', description: 'Shareable report link copied to clipboard.' });
     setTimeout(() => setCopied(false), 2000);
   };
 
   const shareViaEmail = () => {
-    const subject = `Investment Validation: ${reportTitle}`;
-    const body = `I'm sharing this startup validation report for ${reportTitle}. View it here: ${shareUrl}`;
+    const subject = `Investment Validation: ${report.companyName}`;
+    const body = `I'm sharing this startup validation report for ${report.companyName}. View it here: ${shareUrl}`;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -85,17 +112,36 @@ function ShareDialog({ open, onOpenChange, reportTitle }: { open: boolean; onOpe
       <DialogContent className="glass-card sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold font-headline">Share Report</DialogTitle>
-          <DialogDescription>Share this evidence-informed validation via private link.</DialogDescription>
+          <DialogDescription>Your report is private by default. Enable an unlisted link to share it.</DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2 py-4">
-          <Input id="link" defaultValue={shareUrl} readOnly className="bg-background/20" />
-          <Button size="icon" onClick={handleCopy} className="shadow-button-primary">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          </Button>
-        </div>
-        <Button variant="outline" className="w-full justify-start h-12" onClick={shareViaEmail}>
-          <Mail className="mr-3 h-5 w-5 text-primary" /> Share via Email
-        </Button>
+
+        {isOwner && (
+          <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-4">
+            <div className="pr-4">
+              <p className="text-sm font-semibold text-foreground">Anyone with the link can view</p>
+              <p className="text-xs text-muted-foreground">Turn off at any time to revoke access.</p>
+            </div>
+            <Switch checked={enabled} disabled={busy} onCheckedChange={toggleShare} aria-label="Enable share link" />
+          </div>
+        )}
+
+        {enabled ? (
+          <>
+            <div className="flex items-center space-x-2 pt-2">
+              <Input id="link" value={shareUrl} readOnly className="bg-background/20" />
+              <Button size="icon" onClick={handleCopy} className="shadow-button-primary">
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <Button variant="outline" className="w-full justify-start h-12" onClick={shareViaEmail}>
+              <Mail className="mr-3 h-5 w-5 text-primary" /> Share via Email
+            </Button>
+          </>
+        ) : (
+          <p className="py-2 text-sm text-muted-foreground">
+            {isOwner ? 'Turn on the switch above to generate a shareable link.' : 'This report is private.'}
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -124,8 +170,10 @@ export function ReportActions({
     toast({ title: "Generating Professional Word Document", description: "Compiling strategic analysis..." });
     
     try {
+      // Load the heavy docx library only when the user actually exports.
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ImageRun, Footer, BorderStyle } = await import('docx');
       const children = [];
-      
+
       // 1. Header Logic (Mocking image fetch for CDATA brevity, usually would fetch base64)
       children.push(new Paragraph({
         text: report.companyName.toUpperCase(),
@@ -226,6 +274,8 @@ export function ReportActions({
           throw new Error("AI failed to distill pitch deck content.");
         }
 
+        // Load the heavy pptxgenjs library only when generating the deck.
+        const pptxgen = (await import('pptxgenjs')).default;
         const pptx = new pptxgen();
         pptx.layout = 'LAYOUT_16x9';
         pptx.author = 'Senior VC Analyst';
@@ -380,7 +430,7 @@ export function ReportActions({
           </div>
         </CardContent>
       </Card>
-      <ShareDialog open={isShareOpen} onOpenChange={setIsShareOpen} reportTitle={report.companyName} />
+      <ShareDialog open={isShareOpen} onOpenChange={setIsShareOpen} report={report} />
     </>
   );
 }

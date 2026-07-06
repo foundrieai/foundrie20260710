@@ -44,8 +44,7 @@ const suggestCompanyNameFlow = ai.defineFlow(
   async input => {
     assertGoogleAIConfigured();
 
-    const {text, output} = await prompt(input);
-    console.log('[suggestCompanyNameFlow] Raw AI Response:', text);
+    const {output} = await prompt(input);
     if (!output) {
       console.error('[suggestCompanyNameFlow] Parsed output is invalid.');
       throw new Error('Failed to suggest company name. The model returned an invalid structure.');

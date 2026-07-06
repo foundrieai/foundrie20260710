@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,7 @@ const createEmptyFounder = (): FounderData => ({
 });
 
 export function IdeationForm() {
+  const fieldUid = useId();
   const [founders, setFounders] = useState<FounderData[]>([createEmptyFounder()]);
   const [stage, setStage] = useState<'input' | 'configuring' | 'results'>('input');
   
@@ -256,13 +257,13 @@ export function IdeationForm() {
                 <TabsContent value="resume" className="space-y-6">
                   <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-muted rounded-lg bg-background/50 hover:bg-accent/50 transition-colors">
                     <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                    <Label htmlFor={`resume-upload-${founder.id}`} className="cursor-pointer text-center">
+                    <Label htmlFor={`resume-upload-${fieldUid}-${index}`} className="cursor-pointer text-center">
                       <span className="text-primary font-medium">Click to upload</span> or drag and drop
                       <br />
                       <span className="text-sm text-muted-foreground mt-1 block">PDF or TXT (Max 5MB)</span>
                     </Label>
                     <Input 
-                      id={`resume-upload-${founder.id}`} 
+                      id={`resume-upload-${fieldUid}-${index}`} 
                       type="file" 
                       accept=".pdf,.txt" 
                       className="hidden" 
@@ -275,13 +276,13 @@ export function IdeationForm() {
                 <TabsContent value="linkedin" className="space-y-6">
                   <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-muted rounded-lg bg-background/50 hover:bg-accent/50 transition-colors">
                     <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                    <Label htmlFor={`linkedin-upload-${founder.id}`} className="cursor-pointer text-center">
+                    <Label htmlFor={`linkedin-upload-${fieldUid}-${index}`} className="cursor-pointer text-center">
                       <span className="text-primary font-medium">Click to upload</span> LinkedIn Profile PDF
                       <br />
                       <span className="text-sm text-muted-foreground mt-1 block">Go to your LinkedIn profile {'>'} More {'>'} Save to PDF</span>
                     </Label>
                     <Input 
-                      id={`linkedin-upload-${founder.id}`} 
+                      id={`linkedin-upload-${fieldUid}-${index}`} 
                       type="file" 
                       accept=".pdf,.txt" 
                       className="hidden" 
@@ -294,24 +295,24 @@ export function IdeationForm() {
                 <TabsContent value="questionnaire" className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor={`q1-${founder.id}`}>1. What do people regularly ask for your help with, or what comes easily to you that others find hard?</Label>
-                      <Textarea id={`q1-${founder.id}`} value={founder.q1} onChange={e => handleFounderChange(founder.id, 'q1', e.target.value)} />
+                      <Label htmlFor={`q1-${fieldUid}-${index}`}>1. What do people regularly ask for your help with, or what comes easily to you that others find hard?</Label>
+                      <Textarea id={`q1-${fieldUid}-${index}`} value={founder.q1} onChange={e => handleFounderChange(founder.id, 'q1', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`q2-${founder.id}`}>2. What industries, communities, or customers do you understand better than most?</Label>
-                      <Textarea id={`q2-${founder.id}`} value={founder.q2} onChange={e => handleFounderChange(founder.id, 'q2', e.target.value)} />
+                      <Label htmlFor={`q2-${fieldUid}-${index}`}>2. What industries, communities, or customers do you understand better than most?</Label>
+                      <Textarea id={`q2-${fieldUid}-${index}`} value={founder.q2} onChange={e => handleFounderChange(founder.id, 'q2', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`q3-${founder.id}`}>3. What problems or frustrations have you hit that made you think "someone should fix this"?</Label>
-                      <Textarea id={`q3-${founder.id}`} value={founder.q3} onChange={e => handleFounderChange(founder.id, 'q3', e.target.value)} />
+                      <Label htmlFor={`q3-${fieldUid}-${index}`}>3. What problems or frustrations have you hit that made you think "someone should fix this"?</Label>
+                      <Textarea id={`q3-${fieldUid}-${index}`} value={founder.q3} onChange={e => handleFounderChange(founder.id, 'q3', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`q4-${founder.id}`}>4. How much time and money can you commit this year, and do you need income quickly or can the business grow slowly?</Label>
-                      <Textarea id={`q4-${founder.id}`} value={founder.q4} onChange={e => handleFounderChange(founder.id, 'q4', e.target.value)} />
+                      <Label htmlFor={`q4-${fieldUid}-${index}`}>4. How much time and money can you commit this year, and do you need income quickly or can the business grow slowly?</Label>
+                      <Textarea id={`q4-${fieldUid}-${index}`} value={founder.q4} onChange={e => handleFounderChange(founder.id, 'q4', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`q5-${founder.id}`}>5. Beyond your skills, what access do you have that most people do not - an audience, a network, a community, capital, equipment, or inside knowledge?</Label>
-                      <Textarea id={`q5-${founder.id}`} value={founder.q5} onChange={e => handleFounderChange(founder.id, 'q5', e.target.value)} />
+                      <Label htmlFor={`q5-${fieldUid}-${index}`}>5. Beyond your skills, what access do you have that most people do not - an audience, a network, a community, capital, equipment, or inside knowledge?</Label>
+                      <Textarea id={`q5-${fieldUid}-${index}`} value={founder.q5} onChange={e => handleFounderChange(founder.id, 'q5', e.target.value)} />
                     </div>
                   </div>
                 </TabsContent>

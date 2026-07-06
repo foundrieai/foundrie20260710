@@ -551,7 +551,7 @@ Zenith's purpose is deeply intertwined with its "Trust-AI-Community Flywheel": a
   return (
     <TooltipProvider>
       {activeModule === 'validation' && (
-      <div className="report-print-container">
+      <div className="report-print-container report-skin">
         <div className="container mx-auto px-4 py-8">
           <header className="text-center mb-12 print:hidden flex flex-col items-center gap-8 min-h-[220px] justify-center">
             {isGenerating && (

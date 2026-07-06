@@ -349,8 +349,8 @@ h1 .word>span{display:inline-block;will-change:transform}
 @keyframes spmove{from{transform:translateX(-50%)}to{transform:translateX(0)}}
 .sp-set{display:flex;gap:22px;padding:0 11px}
 .sp-item{
-  flex:none;width:min(360px,82vw);height:214px;display:flex;flex-direction:column;
-  border:1px solid rgba(244,241,246,.14);border-radius:20px;padding:32px;
+  flex:none;width:min(360px,82vw);height:164px;display:flex;flex-direction:column;
+  border:1px solid rgba(244,241,246,.14);border-radius:20px;padding:24px 28px;
   background:
     radial-gradient(115% 130% at 8% 4%,rgba(255,196,0,.12),transparent 43%),
     radial-gradient(90% 110% at 100% 100%,rgba(230,0,201,.12),transparent 52%),
@@ -373,10 +373,10 @@ h1 .word>span{display:inline-block;will-change:transform}
   opacity:.22;transition:opacity .35s;z-index:1;
 }
 .sp-item:hover::before{opacity:1}
-.sp-item .mono{display:block;margin-bottom:16px;font-size:11px;position:relative;z-index:1}
+.sp-item .mono{display:block;margin-bottom:10px;font-size:11px;position:relative;z-index:1}
 .sp-item strong{
-  font-family:var(--font-display);font-weight:600;font-size:23px;line-height:1.18;
-  letter-spacing:-.01em;display:block;position:relative;z-index:1;max-width:12.5em;
+  font-family:var(--font-display);font-weight:600;font-size:20px;line-height:1.12;
+  letter-spacing:-.01em;display:block;position:relative;z-index:1;
 }
 .sp-go{
   display:inline-flex;align-items:center;gap:8px;margin-top:auto;font-size:14px;font-weight:600;
@@ -570,45 +570,88 @@ h2 .line>span{display:block;will-change:transform}
 
 /* ================= PERSPECTIVE OPTIONS ================= */
 .perspectives-native{background:var(--ink);overflow:hidden}
-.perspective-options{display:grid;gap:44px}
-.perspective-option{
-  position:relative;border:1px solid var(--line);border-radius:28px;padding:34px;
-  background:linear-gradient(135deg,rgba(244,241,246,.065),rgba(244,241,246,.018));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 22px 70px rgba(0,0,0,.24);
-  overflow:hidden;
+.tcarousel{position:relative;margin-top:20px}
+.tviewport{overflow:hidden;border-radius:30px}
+.ttrack{display:flex;transition:transform .7s cubic-bezier(.16,.84,.28,1)}
+.tslide{flex:0 0 100%;min-width:100%;padding:2px}
+.tpanel{
+  position:relative;isolation:isolate;overflow:hidden;border-radius:28px;min-height:340px;
+  border:1px solid var(--line);padding:clamp(34px,5vw,64px);
+  display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(135deg,rgba(244,241,246,.07),rgba(244,241,246,.015));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 26px 80px rgba(0,0,0,.32);
 }
-.perspective-option::before{
-  content:"";position:absolute;inset:auto 34px 0 34px;height:2px;background:var(--molten);
-  transform:scaleX(.22);transform-origin:left;opacity:.72;transition:transform .45s cubic-bezier(.2,.8,.2,1);
+.tpanel::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:var(--molten);opacity:.85}
+.tpanel::after{content:"";position:absolute;z-index:-1;inset:auto -14% -30% auto;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,var(--tc,var(--ember)),transparent 62%);filter:blur(66px);opacity:.2}
+.tpanel[data-c="mag"]{--tc:var(--mag)}
+.tpanel[data-c="gold"]{--tc:var(--gold)}
+.tpanel[data-c="ember"]{--tc:var(--ember)}
+.tpanel .tmark{display:block;height:52px;font-family:var(--font-display);font-weight:700;font-size:112px;line-height:1;background:var(--molten);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;user-select:none;pointer-events:none}
+.tpanel .tsuite{display:inline-flex;align-items:center;gap:10px;margin:16px 0 22px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--tc,var(--ember))}
+.tpanel .tsuite i{width:8px;height:8px;border-radius:50%;background:var(--tc,var(--ember));box-shadow:0 0 16px var(--tc,var(--ember));animation:tpulse 2.4s ease-in-out infinite}
+@keyframes tpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.tpanel blockquote{margin:0;max-width:30ch;font-family:var(--font-display);font-weight:600;font-size:clamp(23px,2.7vw,38px);line-height:1.18;letter-spacing:-.016em;color:var(--bone)}
+.tpanel .tauthor{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:36px}
+.tavatar{width:56px;height:56px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.02em;color:#14030b}
+.tavatar.grad{background:var(--molten)}
+.tavatar.silver{background:linear-gradient(150deg,#FDFCFE,#a5a1ad 78%)}
+.tmeta{display:flex;flex-direction:column;gap:3px}
+.tmeta strong{font-weight:700;font-size:16px;letter-spacing:-.01em;color:var(--bone)}
+.tmeta span{color:var(--smoke);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.11em}
+.tverif{margin-left:auto;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:100px;padding:8px 14px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--smoke);white-space:nowrap}
+.tverif b{color:var(--tc,var(--ember))}
+.tcontrols{display:flex;align-items:center;gap:14px;margin-top:26px}
+.tdots{display:flex;gap:10px;margin-right:auto}
+.tdot{width:9px;height:9px;border-radius:50%;border:0;padding:0;background:rgba(244,241,246,.2);cursor:pointer;transition:transform .3s,background .3s}
+.tdot.active{background:var(--molten);transform:scale(1.35)}
+.tnav{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:rgba(244,241,246,.03);color:var(--bone);font-size:22px;line-height:1;display:grid;place-items:center;cursor:pointer;transition:border-color .3s,background .3s,transform .3s}
+.tnav:hover{border-color:rgba(244,241,246,.28);background:rgba(244,241,246,.07);transform:translateY(-2px)}
+
+/* ================= PROMOTED IDEAS ================= */
+.promoted-native{background:var(--coal);border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden}
+.promoted-native .section-head{max-width:860px}
+.promoted-native .section-head .live{display:inline-flex;align-items:center;gap:9px;margin-left:14px;vertical-align:middle;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--smoke)}
+.promoted-native .section-head .live i{width:8px;height:8px;border-radius:50%;background:var(--verm);box-shadow:0 0 14px var(--verm);animation:tpulse 1.8s ease-in-out infinite}
+.pi-viewport{overflow:hidden;position:relative;margin-top:6vh}
+.pi-viewport::before,.pi-viewport::after{content:"";position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none}
+.pi-viewport::before{left:0;background:linear-gradient(90deg,var(--coal),transparent)}
+.pi-viewport::after{right:0;background:linear-gradient(270deg,var(--coal),transparent)}
+.pi-track{display:flex;width:max-content;animation:pimove 52s linear infinite;will-change:transform}
+.pi-viewport:hover .pi-track{animation-play-state:paused}
+@keyframes pimove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.pi-set{display:flex;gap:22px;padding:0 11px}
+.pi-card{
+  flex:none;width:min(346px,82vw);min-height:236px;display:flex;flex-direction:column;justify-content:space-between;gap:22px;
+  border:1px solid rgba(244,241,246,.14);border-radius:22px;padding:28px;
+  background:
+    radial-gradient(120% 130% at 6% 4%,rgba(255,196,0,.10),transparent 44%),
+    radial-gradient(90% 110% at 100% 100%,rgba(230,0,201,.10),transparent 52%),
+    linear-gradient(135deg,rgba(244,241,246,.06),rgba(244,241,246,.015));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 20px 52px rgba(0,0,0,.26);
+  position:relative;overflow:hidden;text-decoration:none;color:inherit;
+  transition:border-color .35s,transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s;
 }
-.perspective-option:hover::before{transform:scaleX(1)}
-.option-kicker{display:block;margin-bottom:22px}
-.perspective-split{display:grid;grid-template-columns:.55fr 1fr;gap:34px;align-items:stretch}
-.quote-nav{display:grid;gap:12px}
-.quote-tab{
-  display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:999px;padding:13px 16px;
-  color:var(--smoke);font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:11px;
+.pi-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:var(--molten);transform:scaleX(.2);transform-origin:left;opacity:.75;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.pi-card:hover{border-color:rgba(244,241,246,.26);transform:translateY(-6px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 28px 70px rgba(255,48,0,.16)}
+.pi-card:hover::before{transform:scaleX(1)}
+.pi-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pi-score{width:54px;height:54px;flex-shrink:0;border-radius:15px;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:20px;color:#14030b;background:var(--molten);box-shadow:0 8px 24px rgba(255,48,0,.28)}
+.pi-score small{font-size:11px;font-weight:600;opacity:.8;margin-left:1px}
+.pi-score.na{background:rgba(244,241,246,.1);color:var(--smoke);box-shadow:none;font-size:16px}
+.pi-badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--smoke);border:1px solid var(--line);border-radius:100px;padding:7px 12px}
+.pi-badge i{width:7px;height:7px;border-radius:50%;background:var(--molten);box-shadow:0 0 12px var(--verm)}
+.pi-body h3{font-family:var(--font-display);font-weight:600;font-size:23px;letter-spacing:-.015em;line-height:1.12;margin:0 0 9px;color:var(--bone);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pi-body p{color:var(--smoke);font-size:14px;line-height:1.42;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pi-foot{display:flex;flex-wrap:wrap;gap:8px}
+.pi-tag{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--smoke);border:1px solid var(--line);border-radius:100px;padding:6px 11px}
+.pi-empty{display:flex;flex-direction:column;align-items:flex-start;gap:18px;border:1px solid var(--line);border-radius:24px;padding:44px;background:linear-gradient(135deg,rgba(244,241,246,.05),rgba(244,241,246,.012));max-width:660px;margin-top:6vh}
+.pi-empty[hidden]{display:none}
+.pi-empty strong{font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:-.01em;color:var(--bone)}
+.pi-empty p{color:var(--smoke);font-size:16px;line-height:1.5;margin:0}
+@media(prefers-reduced-motion:reduce){
+  .pi-track{animation:none}
+  .pi-viewport{overflow-x:auto}
 }
-.quote-tab i{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px var(--gold)}
-.quote-tab:nth-child(2) i{background:var(--mag);box-shadow:0 0 18px var(--mag)}
-.quote-stage{
-  min-height:286px;border-radius:24px;padding:36px;
-  background:radial-gradient(90% 120% at 100% 0%,rgba(230,0,201,.16),transparent 52%),radial-gradient(90% 120% at 0% 100%,rgba(255,196,0,.16),transparent 52%),rgba(8,7,12,.5);
-}
-.quote-stage p,.timeline-quote p,.voice-card p{font-size:clamp(22px,2.4vw,34px);line-height:1.18;font-weight:600;letter-spacing:-.012em}
-.quote-stage footer,.timeline-quote footer,.voice-card footer{margin-top:24px;color:var(--smoke);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
-.perspective-timeline{display:grid;gap:24px}
-.timeline-quote{display:grid;grid-template-columns:110px 1fr;gap:28px;align-items:start;padding:8px 0}
-.timeline-mark{position:relative;font-family:var(--font-display);font-weight:700;font-size:42px;line-height:1;background:var(--molten);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.timeline-mark::after{content:"";position:absolute;left:52px;top:56px;width:2px;height:calc(100% + 42px);background:var(--molten);opacity:.45}
-.timeline-quote:last-child .timeline-mark::after{display:none}
-.voice-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.voice-card{
-  min-height:330px;border-radius:24px;padding:34px;display:flex;flex-direction:column;justify-content:space-between;
-  background:linear-gradient(160deg,rgba(255,196,0,.11),rgba(255,0,85,.055) 55%,rgba(230,0,201,.11));
-  border:1px solid rgba(244,241,246,.13);position:relative;overflow:hidden;
-}
-.voice-card::after{content:"";position:absolute;inset:auto -12% -28% auto;width:240px;height:240px;border-radius:50%;background:var(--molten);filter:blur(58px);opacity:.22}
 
 /* ================= CAREER + RESOURCES ================= */
 .career-sec{background:var(--ink);border-top:1px solid var(--line)}
@@ -793,11 +836,9 @@ body::before{
   .dip-sticky{position:relative;top:0;height:300px;margin-bottom:44px}
   .dip-steps{gap:8vh;padding:0}
   .program-grid{grid-template-columns:1fr;gap:56px}
-  .perspective-split,.program-mode-grid{grid-template-columns:1fr}
-  .voice-grid,.res-grid{grid-template-columns:1fr}
-  .timeline-quote{grid-template-columns:70px 1fr}
-  .timeline-mark{font-size:32px}
-  .timeline-mark::after{left:34px}
+  .program-mode-grid{grid-template-columns:1fr}
+  .res-grid{grid-template-columns:1fr}
+  .tgrid{grid-template-columns:1fr}
   .h-track{flex-direction:column;width:auto;padding:6vh 36px}
   .pcard{width:100%;min-height:0}
   .h-progress{display:none}
@@ -808,11 +849,11 @@ body::before{
   .container{padding:0 22px}
   .sp{padding:84px 0}
   .sp-viewport::before,.sp-viewport::after{width:44px}
-  .sp-item{height:206px;padding:27px 24px}
+  .sp-item{height:158px;padding:22px 22px}
   .dip-sticky{height:260px}
   .tool-mini{align-items:flex-start}
-  .perspective-option,.career-panel{padding:24px;border-radius:22px}
-  .quote-stage{padding:24px}
+  .tcard,.career-panel{padding:28px 24px 24px;border-radius:22px}
+  .tmark{font-size:88px;height:42px}
   .program-lane{grid-template-columns:1fr;gap:8px}
   .reel{aspect-ratio:16/11}
   .h-track{padding:5vh 22px}
@@ -853,6 +894,7 @@ body.no-anim .seam-line{transform:scaleX(1)}
     <div class="nav-links">
       <a href="/company" target="_top" data-hot>COMPANY</a>
       <a href="/career" target="_top" data-hot>CAREER</a>
+      <a href="/pricing" target="_top" data-hot>PRICING</a>
       <a href="/resources" target="_top" data-hot>RESOURCES</a>
       <a href="/about" target="_top" data-hot>ABOUT</a>
       <a href="/connect" target="_top" data-hot>CONNECT</a>
@@ -912,7 +954,7 @@ body.no-anim .seam-line{transform:scaleX(1)}
 <section class="journey section-pad" id="platform">
   <div class="container">
     <div class="section-head left">
-      <span class="mono">PLATFORM ARCHITECTURE ></span>
+      <span class="mono">OUR MARKET-LEADING SOLUTIONS ></span>
       <h2 data-split>Two suites, one destination.</h2>
       <p>With two complete suites of dynamic, mission-critical tools, Foundrie AI equips you with everything you need to succeed in the AI era of business - organized around how you actually work.</p>
     </div>
@@ -967,46 +1009,13 @@ body.no-anim .seam-line{transform:scaleX(1)}
       <h2 data-split>Perspectives from innovators like you.</h2>
       <p>Hear directly from the professionals, founders, and builders already forging their path to success.</p>
     </div>
-    <div class="perspective-options">
-      <article class="perspective-option">
-        <span class="mono option-kicker">Option 01 - Signal Selector ></span>
-        <div class="perspective-split">
-          <div class="quote-nav" aria-hidden="true">
-            <div class="quote-tab"><i></i> LaunchCode</div>
-            <div class="quote-tab"><i></i> Foundrie AI</div>
-          </div>
-          <div class="quote-stage">
-            <p>LaunchCode: Ideation surfaced a startup opportunity I had been circling for two years without recognizing it. The founder-market fit framing was the unlock - I knew the space, I just needed someone to connect the dots.</p>
-            <footer>Priya L. / Founder</footer>
-          </div>
-        </div>
-      </article>
-      <article class="perspective-option">
-        <span class="mono option-kicker">Option 02 - Impact Timeline ></span>
-        <div class="perspective-timeline">
-          <div class="timeline-quote">
-            <div class="timeline-mark">01</div>
-            <div><p>LaunchCode: Ideation surfaced a startup opportunity I had been circling for two years without recognizing it. The founder-market fit framing was the unlock - I knew the space, I just needed someone to connect the dots.</p><footer>Priya L. / Founder</footer></div>
-          </div>
-          <div class="timeline-quote">
-            <div class="timeline-mark">02</div>
-            <div><p>Foundrie AI finally gives me a single place to sharpen my career narrative and level up my professional presence. I used to juggle five different tools - now I have one platform that actually understands the AI era.</p><footer>Marcus R. / Product Manager - Early Adopter</footer></div>
-          </div>
-        </div>
-      </article>
-      <article class="perspective-option">
-        <span class="mono option-kicker">Option 03 - Voice Panels ></span>
-        <div class="voice-grid">
-          <div class="voice-card">
-            <p>LaunchCode: Ideation surfaced a startup opportunity I had been circling for two years without recognizing it. The founder-market fit framing was the unlock - I knew the space, I just needed someone to connect the dots.</p>
-            <footer>Priya L. / Founder</footer>
-          </div>
-          <div class="voice-card">
-            <p>Foundrie AI finally gives me a single place to sharpen my career narrative and level up my professional presence. I used to juggle five different tools - now I have one platform that actually understands the AI era.</p>
-            <footer>Marcus R. / Product Manager - Early Adopter</footer>
-          </div>
-        </div>
-      </article>
+    <div class="tcarousel" data-hot>
+      <div class="tviewport"><div class="ttrack" id="ttrack"></div></div>
+      <div class="tcontrols">
+        <div class="tdots" id="tdots" role="tablist" aria-label="Choose testimonial"></div>
+        <button class="tnav prev" type="button" aria-label="Previous testimonial">&lsaquo;</button>
+        <button class="tnav next" type="button" aria-label="Next testimonial">&rsaquo;</button>
+      </div>
     </div>
   </div>
 </section>
@@ -1045,6 +1054,27 @@ body.no-anim .seam-line{transform:scaleX(1)}
         <strong>Watch LaunchCode in motion</strong>
       </div>
       <span class="reel-time">01:24</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROMOTED IDEAS -->
+<section class="promoted-native section-pad" id="promoted">
+  <div class="container">
+    <div class="section-head left">
+      <span class="mono">FORGED ON FOUNDRIE &gt;<span class="live"><i></i> Live</span></span>
+      <h2 data-split>Ideas taking shape right now.</h2>
+      <p>Real ventures our founders have chosen to share &mdash; each one surfaced, scored, and promoted from inside LaunchCode. This is the work happening on the platform today.</p>
+    </div>
+  </div>
+  <div class="pi-viewport" id="pi-viewport" aria-label="Promoted startup ideas" hidden>
+    <div class="pi-track" id="pi-track"></div>
+  </div>
+  <div class="container">
+    <div class="pi-empty" id="pi-empty" hidden>
+      <strong>The forge is warming up.</strong>
+      <p>No founders have promoted an idea to the public wall yet. Start building in LaunchCode, and your venture could be the first to appear here.</p>
+      <a class="btn btn-molten magnetic" href="/signup" target="_top" data-hot><span>Start Building for Free &gt;</span></a>
     </div>
   </div>
 </section>
@@ -1447,6 +1477,13 @@ if(hasGSAP && typeof ScrollTrigger !== 'undefined' && !reduced){
       scrollTrigger:{trigger:el, start:'top 90%'}});
   });
 
+  // Testimonial carousel: rise on entry
+  if(document.querySelector('.tcarousel')){
+    gsap.from('.tcarousel', {opacity:0, y:40, duration:1, ease:'power3.out',
+      scrollTrigger:{trigger:'.tcarousel', start:'top 84%'},
+      clearProps:'opacity,transform'});
+  }
+
   // Hero exit parallax
   gsap.to('.hero-inner', {yPercent:-16, opacity:.2, ease:'none',
     scrollTrigger:{trigger:'.hero', start:'top top', end:'bottom top', scrub:0.5}});
@@ -1513,6 +1550,10 @@ if(hasGSAP && typeof ScrollTrigger !== 'undefined' && !reduced){
 
 /* ============ SUITE DIPTYCH ============ */
 (function(){
+  // When embedded in the app shell the page does not scroll inside the iframe,
+  // so IntersectionObserver sees every step at once and would lock onto the last
+  // face. In that mode the parent-scroll handler below drives the faces instead.
+  if(embedded) return;
   var steps = document.querySelectorAll('#platform .dip-step');
   var faces = document.querySelectorAll('#dip-visual .dip-face');
   if(!steps.length || !faces.length || !('IntersectionObserver' in window)) return;
@@ -1562,16 +1603,39 @@ if(hasGSAP && typeof ScrollTrigger !== 'undefined' && !reduced){
     var viewportH = Number(data.viewportH) || window.innerHeight;
     var viewportTopInFrame = parentY - frameTop;
     var desiredTop = viewportTopInFrame + Math.max(90, viewportH * 0.14);
-    var normalTop = sticky.offsetTop;
+    // The box's natural top must be measured in the SAME absolute document space
+    // as viewportTopInFrame. The iframe does not scroll internally, so the dip's
+    // bounding-rect top already is that absolute position. (sticky.offsetTop is
+    // relative to the offset parent, which mixed coordinate spaces and pinned the
+    // box to the bottom immediately — the "stuck" bug.)
+    var currentMove = parseFloat((sticky.style.transform.match(/[-\d.]+px/g) || [])[1]) || 0;
+    var normalTop = sticky.getBoundingClientRect().top + (window.scrollY || 0) - currentMove;
     var maxMove = Math.max(0, dip.offsetHeight - sticky.offsetHeight);
     var move = clamp(desiredTop - normalTop, 0, maxMove);
     sticky.style.transform = 'translate3d(0,' + move.toFixed(2) + 'px,0)';
 
-    var viewportMid = viewportTopInFrame + viewportH * 0.52;
+    // Pick the face whose step sits closest to the viewport centre, measured in
+    // the parent's coordinate space. This aligns the sticky visual with whatever
+    // step the reader is actually looking at, independent of offsetParent quirks.
     var active = steps[0].getAttribute('data-step');
-    steps.forEach(function(step){
-      if(viewportMid >= step.offsetTop) active = step.getAttribute('data-step');
-    });
+    var frameRectTop = null;
+    try { frameRectTop = window.frameElement.getBoundingClientRect().top; } catch(e){ frameRectTop = null; }
+    if(frameRectTop !== null){
+      var targetY = (Number(data.viewportH) || viewportH) * 0.5;
+      var bestDist = Infinity;
+      steps.forEach(function(step){
+        var sr = step.getBoundingClientRect();
+        var centerInParent = frameRectTop + sr.top + sr.height / 2;
+        var dist = Math.abs(centerInParent - targetY);
+        if(dist < bestDist){ bestDist = dist; active = step.getAttribute('data-step'); }
+      });
+    } else {
+      // Cross-origin fallback: use the scrolled-in offset heuristic.
+      var viewportMid = viewportTopInFrame + viewportH * 0.5;
+      steps.forEach(function(step){
+        if(viewportMid >= step.offsetTop) active = step.getAttribute('data-step');
+      });
+    }
     setFace(active);
 
     if(launchcode && seamLine && seamSpark){
@@ -1593,11 +1657,36 @@ if(hasGSAP && typeof ScrollTrigger !== 'undefined' && !reduced){
       });
     }
   }
+  // Message-driven path (kept as a fallback for cross-origin embedding).
   window.addEventListener('message', function(event){
     if(event.origin !== window.location.origin) return;
     if(!event.data || event.data.type !== 'foundrie-parent-scroll') return;
     updateSticky(event.data);
   });
+
+  // Primary path: read the parent's scroll position directly every frame.
+  // Same-origin embedding lets us do this without depending on the parent
+  // reliably firing scroll events, which was leaving the diptych frozen.
+  var canReadParent = true;
+  try { void window.parent.scrollY; void window.frameElement; }
+  catch(e){ canReadParent = false; }
+
+  if(canReadParent && window.frameElement){
+    var raf = function(){
+      try{
+        var pWin = window.parent;
+        var rect = window.frameElement.getBoundingClientRect();
+        var scrollY = pWin.scrollY || pWin.pageYOffset || 0;
+        updateSticky({
+          scrollY: scrollY,
+          viewportH: pWin.innerHeight || window.innerHeight,
+          frameTop: rect.top + scrollY
+        });
+      }catch(e){ /* stop on unexpected cross-origin access */ return; }
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+  }
 })();
 
 /* ============ CARD GLOW FOLLOW ============ */
@@ -1608,6 +1697,122 @@ document.querySelectorAll('.pcard, .gcard').forEach(function(card){
     card.style.setProperty('--my', ((e.clientY-r.top)/r.height*100)+'%');
   });
 });
+
+/* ============ TESTIMONIAL CAROUSEL ============ */
+/* To add a testimonial: append one object to TESTIMONIALS below. The section scales automatically. */
+(function(){
+  var track = document.getElementById('ttrack');
+  var dotsWrap = document.getElementById('tdots');
+  if(!track || !dotsWrap) return;
+
+  var TESTIMONIALS = [
+    {
+      quote: "LaunchCode: Ideation surfaced a startup opportunity I had been circling for two years without recognizing it. The founder-market fit framing was the unlock — I knew the space, I just needed someone to connect the dots.",
+      name: "Priya L.", role: "Founder", suite: "Company Suite",
+      accent: "mag", avatar: "grad", initials: "PL", verified: "Builder"
+    },
+    {
+      quote: "Foundrie AI finally gives me a single place to sharpen my career narrative and level up my professional presence. I used to juggle five different tools — now I have one platform that actually understands the AI era.",
+      name: "Marcus R.", role: "Product Manager · Early Adopter", suite: "Career Suite",
+      accent: "gold", avatar: "silver", initials: "MR", verified: "User"
+    },
+
+    /* ---- PLACEHOLDER TESTIMONIALS: replace with real, approved quotes before launch ---- */
+    {
+      quote: "The validation scoring gave me the confidence to walk away from an idea I loved and double down on the one the evidence actually supported. That clarity was worth more than any pitch template.",
+      name: "Naomi K.", role: "Founder", suite: "Company Suite",
+      accent: "mag", avatar: "grad", initials: "NK", verified: "Builder"
+    },
+    {
+      quote: "I rewrote my resume in an afternoon and finally understood why my applications were stalling. Resumait showed me exactly where my experience was getting lost before a human ever read it.",
+      name: "Devin A.", role: "Software Engineer", suite: "Career Suite",
+      accent: "gold", avatar: "silver", initials: "DA", verified: "User"
+    },
+    {
+      quote: "Having every decision, every piece of evidence, and every phase in one place changed how our team works. We stopped arguing from opinion and started building from proof.",
+      name: "Sofia M.", role: "Co-Founder", suite: "Company Suite",
+      accent: "mag", avatar: "grad", initials: "SM", verified: "Builder"
+    },
+    {
+      quote: "BrandForge helped me articulate a professional voice I had never been able to put into words. My presence finally sounds like me, only sharper.",
+      name: "Terrence B.", role: "Marketing Director", suite: "Career Suite",
+      accent: "gold", avatar: "silver", initials: "TB", verified: "User"
+    },
+    {
+      quote: "We run our entire cohort on Foundrie AI now. For the first time I can see which founders are stuck before they fall behind, and the whole program moves faster because of it.",
+      name: "Aisha R.", role: "Accelerator Director", suite: "Company Suite",
+      accent: "mag", avatar: "grad", initials: "AR", verified: "Partner"
+    },
+    {
+      quote: "I came in with no idea how to position myself and left with a resume, a headline, and a plan. It felt like having a career coach who actually understood the AI job market.",
+      name: "Grant L.", role: "Recent Graduate", suite: "Career Suite",
+      accent: "gold", avatar: "silver", initials: "GL", verified: "User"
+    }
+  ];
+
+  var count = TESTIMONIALS.length, i = 0, timer = null;
+
+  TESTIMONIALS.forEach(function(t, idx){
+    var slide = document.createElement('div');
+    slide.className = 'tslide';
+    slide.setAttribute('role', 'group');
+    slide.setAttribute('aria-roledescription', 'testimonial');
+    slide.innerHTML =
+      '<div class="tpanel" data-c="' + t.accent + '">' +
+        '<span class="tmark" aria-hidden="true">“</span>' +
+        '<span class="tsuite"><i></i> ' + t.suite + '</span>' +
+        '<blockquote>' + t.quote + '</blockquote>' +
+        '<div class="tauthor">' +
+          '<div class="tavatar ' + t.avatar + '" aria-hidden="true">' + t.initials + '</div>' +
+          '<div class="tmeta"><strong>' + t.name + '</strong><span>' + t.role + '</span></div>' +
+          '<span class="tverif">' + t.verified + '</span>' +
+        '</div>' +
+      '</div>';
+    track.appendChild(slide);
+
+    var dot = document.createElement('button');
+    dot.className = 'tdot';
+    dot.type = 'button';
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Testimonial ' + (idx + 1) + ' of ' + count);
+    dotsWrap.appendChild(dot);
+  });
+
+  var dots = dotsWrap.querySelectorAll('.tdot');
+
+  function go(n){
+    i = (n + count) % count;
+    track.style.transform = 'translateX(-' + (i * 100) + '%)';
+    dots.forEach(function(d, idx){
+      d.classList.toggle('active', idx === i);
+      d.setAttribute('aria-selected', idx === i ? 'true' : 'false');
+    });
+  }
+
+  dots.forEach(function(d, idx){ d.addEventListener('click', function(){ go(idx); restart(); }); });
+  var prev = document.querySelector('.tnav.prev'), next = document.querySelector('.tnav.next');
+  if(prev) prev.addEventListener('click', function(){ go(i - 1); restart(); });
+  if(next) next.addEventListener('click', function(){ go(i + 1); restart(); });
+
+  function start(){ if(reduced || count < 2 || timer) return; timer = setInterval(function(){ go(i + 1); }, 6000); }
+  function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+  function restart(){ stop(); start(); }
+
+  var carousel = document.querySelector('.tcarousel');
+  if(carousel){
+    carousel.addEventListener('mouseenter', stop);
+    carousel.addEventListener('mouseleave', start);
+  }
+
+  // Hide controls entirely when there is only one testimonial
+  if(count < 2 && carousel){
+    var controls = carousel.querySelector('.tcontrols');
+    if(controls) controls.style.display = 'none';
+  }
+
+  go(0);
+  start();
+})();
 
 /* ============ EMBER PARTICLES ============ */
 (function(){
@@ -1769,6 +1974,85 @@ if(window.parent !== window){
 }
 
 })();
+</script>
+
+<!-- PROMOTED IDEAS: live Firestore gallery -->
+<script type="module">
+  import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+  import { getFirestore, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+
+  const firebaseConfig = {
+    projectId: "studio-2154202824-aba5a",
+    appId: "1:135576849039:web:853241bb5350a187af3efa",
+    apiKey: "AIzaSyCVkpuFcvKpizHEgpU0y9t_wg3VK_1xI_M",
+    authDomain: "studio-2154202824-aba5a.firebaseapp.com",
+    messagingSenderId: "135576849039"
+  };
+
+  const SCORE_WEIGHTS = { marketPotential:30, competitiveEdge:25, technicalFeasibility:20, financialViability:25 };
+
+  const viewport = document.getElementById('pi-viewport');
+  const track = document.getElementById('pi-track');
+  const empty = document.getElementById('pi-empty');
+  if (track) init();
+
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function overallScore(scores){
+    if (!scores) return null;
+    let sum = 0, any = false;
+    for (const k in SCORE_WEIGHTS){
+      const s = scores[k] && typeof scores[k].score === 'number' ? scores[k].score : null;
+      if (s != null){ any = true; sum += s * (SCORE_WEIGHTS[k] / 100); }
+    }
+    return any ? sum : null;
+  }
+
+  function cardHTML(r){
+    const name = esc(r.companyName || 'Untitled Venture');
+    const tagline = esc(r.tagline || r.description || 'A venture in the making.');
+    const score = overallScore(r.scores);
+    const scoreEl = score != null
+      ? '<div class="pi-score">' + score.toFixed(1) + '<small>/10</small></div>'
+      : '<div class="pi-score na">&mdash;</div>';
+    const tags = [];
+    if (r.industry) tags.push('<span class="pi-tag">' + esc(r.industry) + '</span>');
+    if (r.stage) tags.push('<span class="pi-tag">' + esc(r.stage) + '</span>');
+    return (
+      '<a class="pi-card" href="/signup" target="_top" data-hot>' +
+        '<div class="pi-top">' + scoreEl + '<span class="pi-badge"><i></i> Promoted</span></div>' +
+        '<div class="pi-body"><h3>' + name + '</h3><p>' + tagline + '</p></div>' +
+        '<div class="pi-foot">' + tags.join('') + '</div>' +
+      '</a>'
+    );
+  }
+
+  function showEmpty(){ if (viewport) viewport.hidden = true; if (empty) empty.hidden = false; }
+
+  function render(reports){
+    if (!reports.length){ showEmpty(); return; }
+    // Repeat the set until it is wide enough for a seamless marquee, then duplicate for the loop.
+    let base = reports.slice();
+    while (base.length < 6) base = base.concat(reports);
+    const setHTML = base.map(cardHTML).join('');
+    track.innerHTML = '<div class="pi-set">' + setHTML + '</div><div class="pi-set" aria-hidden="true">' + setHTML + '</div>';
+    if (viewport) viewport.hidden = false;
+    if (empty) empty.hidden = true;
+  }
+
+  async function init(){
+    try {
+      const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const snap = await getDocs(query(collection(db, 'promotedReports'), orderBy('updatedAt', 'desc'), limit(12)));
+      const reports = [];
+      snap.forEach(d => reports.push(d.data()));
+      render(reports);
+    } catch (err) {
+      console.warn('Promoted ideas unavailable:', err && err.message ? err.message : err);
+      showEmpty();
+    }
+  }
 </script>
 </body>
 </html>

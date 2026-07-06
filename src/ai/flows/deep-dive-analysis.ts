@@ -65,13 +65,11 @@ const deepDiveAnalysisFlow = ai.defineFlow(
   async input => {
     assertGoogleAIConfigured();
 
-    console.log(`[deepDiveAnalysisFlow] Starting deep dive for section: ${input.sectionName}`);
     const {output} = await prompt(input);
     if (!output?.content) {
       console.error(`[deepDiveAnalysisFlow] AI returned empty content for section: ${input.sectionName}`);
       throw new Error('Deep dive analysis failed to generate content.');
     }
-    console.log(`[deepDiveAnalysisFlow] Successfully generated deep dive for section: ${input.sectionName}`);
     return output;
   }
 );

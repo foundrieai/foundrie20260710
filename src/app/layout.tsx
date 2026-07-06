@@ -9,8 +9,21 @@ import Image from 'next/image';
 import { ActionArrowNormalizer } from '@/components/shared/action-arrow-normalizer';
 
 export const metadata: Metadata = {
-  title: 'Foundrie AI',
-  description: 'The AI venture foundry for companies, careers, and brands in the modern AI era.',
+  metadataBase: new URL('https://foundrie.ai'),
+  title: {
+    default: 'Foundrie AI — Your Innovation Destination',
+    template: '%s · Foundrie AI',
+  },
+  description:
+    'Two suites of intelligent tools for the AI era of business. Build your company with LaunchCode and your career with Resumait — all in one place.',
+  openGraph: {
+    title: 'Foundrie AI — Your Innovation Destination',
+    description:
+      'Two suites of intelligent tools for the AI era of business. Build your company with LaunchCode and your career with Resumait — all in one place.',
+    type: 'website',
+    siteName: 'Foundrie AI',
+  },
+  twitter: { card: 'summary_large_image' },
 };
 
 export default function RootLayout({
@@ -19,13 +32,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark overflow-x-clip">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased bg-background min-h-screen flex flex-col">
+      <body className="font-body antialiased bg-background min-h-screen flex flex-col overflow-x-clip">
         <FirebaseClientProvider>
           <AppHeader />
           <ActionArrowNormalizer />
@@ -55,7 +68,7 @@ export default function RootLayout({
                       <p>START FORGING YOUR OWN FUTURE.</p>
                     </div>
                     <div className="foundrie-footer-cols">
-                      <div><h4>Platform</h4><Link href="/career">Career</Link><Link href="/company">Company</Link><Link href="/resources">Resources</Link></div>
+                      <div><h4>Platform</h4><Link href="/career">Career</Link><Link href="/company">Company</Link><Link href="/resources">Resources</Link><Link href="/pricing">Pricing</Link></div>
                       <div><h4>Company</h4><Link href="/about">About</Link><Link href="/connect">Connect</Link><Link href="/login">Sign In</Link></div>
                       <div><h4>Legal</h4><Link href="/terms">Terms of Service</Link><Link href="/privacy">Privacy Policy</Link><Link href="/cookies">Cookie Policy</Link></div>
                     </div>

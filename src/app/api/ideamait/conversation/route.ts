@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ideamaitConversation } from '@/ai/flows/ideamait-conversation';
+import { aiErrorResponse } from '@/ai/ai-errors';
 
 export async function POST(request: Request) {
   try {
@@ -7,7 +8,6 @@ export async function POST(request: Request) {
     const reply = await ideamaitConversation({ context });
     return NextResponse.json({ reply });
   } catch (error) {
-    console.error('Conversation failed', error);
-    return NextResponse.json({ error: 'Conversation failed' }, { status: 500 });
+    return aiErrorResponse(error, 'ideamait/conversation');
   }
 }

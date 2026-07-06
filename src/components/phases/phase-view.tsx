@@ -120,7 +120,7 @@ export function PhaseView({
     : 'Dev complete';
 
   return (
-    <main className="min-h-screen bg-[var(--lc-bg)] pb-24 text-[var(--lc-text)]">
+    <main className="report-skin min-h-screen bg-[var(--lc-bg)] pb-24 text-[var(--lc-text)]">
       <div className="sticky top-0 z-40 border-b border-[var(--lc-divider)] bg-[var(--lc-bg)]/95 px-6 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div>

@@ -1,5 +1,10 @@
 import { LegalPage } from '@/components/legal/legal-page';
 
+export const metadata = {
+  title: 'Cookie Policy',
+  description: 'How Foundrie AI uses cookies and similar technologies.',
+};
+
 export default function CookiesPage() {
   return (
     <LegalPage

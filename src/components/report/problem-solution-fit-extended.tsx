@@ -338,16 +338,16 @@ export function ProblemSolutionFitExtended({ Context }: { Context?: any }) {
         <div className="pt-8 border-t border-slate-200 w-full flex flex-col items-center">
           <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-4">National Resources</p>
           <div className="flex flex-wrap justify-center gap-6">
-            <a href="#" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a href="https://new.nsf.gov/funding/initiatives/i-corps" target="_blank" rel="noopener noreferrer" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               NSF I-Corps <ExternalLink className="w-3 h-3 ml-1" />
             </a>
-            <a href="#" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a href="https://americassbdc.org/" target="_blank" rel="noopener noreferrer" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               SBDC Network <ExternalLink className="w-3 h-3 ml-1" />
             </a>
-            <a href="#" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a href="https://www.score.org/" target="_blank" rel="noopener noreferrer" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               SCORE <ExternalLink className="w-3 h-3 ml-1" />
             </a>
-            <a href="#" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a href="https://www.sbir.gov/" target="_blank" rel="noopener noreferrer" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               SBIR/STTR Phase I <ExternalLink className="w-3 h-3 ml-1" />
             </a>
           </div>

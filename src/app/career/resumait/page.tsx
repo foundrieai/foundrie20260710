@@ -9,6 +9,12 @@ import {
   runSpellCheck,
 } from '@/features/resumait/actions';
 
+export const metadata = {
+  title: 'Resumait',
+  description:
+    'Comprehensive, ATS-ready resume optimization for the AI era. Tailor your resume to any role and access career guidance on demand.',
+};
+
 export default function ResumaitPage() {
   return (
     <main className="resumait-skin min-h-[calc(100vh-74px)] px-4 py-6 md:px-8">

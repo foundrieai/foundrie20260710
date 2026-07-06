@@ -60,7 +60,6 @@ const searchInternet = ai.defineTool(
     }),
   },
   async ({ query }) => {
-    console.log(`[IDEAMAIT UPLINK] Conducting research for: ${query}`);
     return {
       results: [
         {

@@ -241,10 +241,10 @@ export function ProductMarketFit({ Context }: { Context?: any }) {
         <div className="pt-8 border-t border-slate-200 w-full flex flex-col items-center">
           <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-4">Scaling Resources</p>
           <div className="flex flex-wrap justify-center gap-6">
-            <a href="#" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a href="https://www.sbir.gov/about" target="_blank" rel="noopener noreferrer" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               SBIR/STTR Phase II <ExternalLink className="w-3 h-3 ml-1" />
             </a>
-            <a href="#" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a href="https://www.nvca.org/" target="_blank" rel="noopener noreferrer" className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               Growth Equity Networks <ExternalLink className="w-3 h-3 ml-1" />
             </a>
           </div>

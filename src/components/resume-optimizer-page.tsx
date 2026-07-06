@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Wand2, Loader2, Upload, Check, Sparkles, ArrowUpRight, ChevronDown, Edit3, CheckCircle2, Download, Layout, Zap, BarChart3, Activity, Database, Type, UserCircle, Columns, Target, Circle, XCircle, RotateCcw, FileText, Trash2, HelpCircle } from "lucide-react";
+import { Wand2, Loader2, Upload, Check, Sparkles, ArrowUpRight, ChevronDown, Edit3, CheckCircle2, Download, Layout, Zap, BarChart3, Activity, Database, Type, UserCircle, Columns, Target, Circle, XCircle, RotateCcw, FileText, Trash2, HelpCircle, Save, FolderOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { KeywordChecklist } from "./keyword-checklist";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
+import { collection, addDoc, serverTimestamp, query, orderBy, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScoringProgress, ScoringStep } from "./ScoringProgress";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -193,10 +195,81 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
 
   const { toast } = useToast();
   const { user } = useUser();
+  const firestore = useFirestore();
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(false);
+  const [savedResumes, setSavedResumes] = useState<Array<{ id: string; title: string; jobTitle?: string; jobDescription?: string; resumeText: string; createdAt?: string }>>([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { resume: "", jobDescription: "", jobTitle: "" },
   });
+
+  const handleSaveResume = async () => {
+    if (!user) {
+      toast({ variant: 'destructive', title: 'Sign in required', description: 'Please sign in to save resumes.' });
+      return;
+    }
+    if (!firestore || !optimizedResumeText) return;
+    setIsSaving(true);
+    try {
+      const title = (jobTitleValue || analysis?.atsPreview?.legalFirstName || 'Optimized resume').toString();
+      await addDoc(collection(firestore, 'users', user.uid, 'resumes'), {
+        title,
+        jobTitle: jobTitleValue || '',
+        jobDescription: jobDescValue || '',
+        resumeText: optimizedResumeText,
+        createdAt: serverTimestamp(),
+      });
+      toast({ title: 'Resume saved', description: 'Find it any time under Saved.' });
+    } catch {
+      toast({ variant: 'destructive', title: 'Could not save', description: 'Please try again.' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openSavedResumes = async () => {
+    setSavedOpen(true);
+    if (!user || !firestore) return;
+    setLoadingSaved(true);
+    try {
+      const snap = await getDocs(query(collection(firestore, 'users', user.uid, 'resumes'), orderBy('createdAt', 'desc')));
+      setSavedResumes(snap.docs.map((d) => {
+        const data = d.data() as any;
+        return {
+          id: d.id,
+          title: data.title || 'Untitled',
+          jobTitle: data.jobTitle,
+          jobDescription: data.jobDescription,
+          resumeText: data.resumeText || '',
+          createdAt: data.createdAt?.toDate?.().toLocaleDateString?.() ?? '',
+        };
+      }));
+    } catch {
+      toast({ variant: 'destructive', title: 'Could not load saved resumes' });
+    } finally {
+      setLoadingSaved(false);
+    }
+  };
+
+  const loadSavedResume = (r: { jobTitle?: string; jobDescription?: string; resumeText: string }) => {
+    setOptimizedResumeText(r.resumeText);
+    if (r.jobTitle) form.setValue('jobTitle', r.jobTitle);
+    if (r.jobDescription) form.setValue('jobDescription', r.jobDescription);
+    setSavedOpen(false);
+    toast({ title: 'Resume loaded', description: 'Your saved resume is ready to refine or export.' });
+  };
+
+  const deleteSavedResume = async (id: string) => {
+    if (!user || !firestore) return;
+    try {
+      await deleteDoc(doc(firestore, 'users', user.uid, 'resumes', id));
+      setSavedResumes((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      toast({ variant: 'destructive', title: 'Could not delete' });
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -594,7 +667,7 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
 
   return (
     <div className="relative min-h-screen">
-      <div className="fixed top-4 right-4 z-[100]">
+      <div className="fixed top-[86px] right-4 z-40">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" size="sm" className="font-black uppercase text-[10px] tracking-widest border-2 hover:bg-destructive hover:text-white hover:border-destructive transition-all gap-2">
@@ -616,7 +689,101 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
         </AlertDialog>
       </div>
 
+      {/* Saved resumes */}
+      <Dialog open={savedOpen} onOpenChange={setSavedOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold tracking-tight">Saved Resumes</DialogTitle>
+            <DialogDescription>Load a saved resume to refine or export it, or remove ones you no longer need.</DialogDescription>
+          </DialogHeader>
+          {loadingSaved ? (
+            <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          ) : savedResumes.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">You have not saved any resumes yet. Generate an optimized resume and choose Save.</p>
+          ) : (
+            <div className="space-y-3 py-2">
+              {savedResumes.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-foreground">{r.title}</p>
+                    <p className="text-xs text-muted-foreground">{r.createdAt || 'Saved'}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button size="sm" onClick={() => loadSavedResume(r)} className="h-8 text-xs font-bold">Load</Button>
+                    <Button size="icon" variant="ghost" onClick={() => deleteSavedResume(r.id)} className="h-8 w-8 text-muted-foreground hover:text-destructive" aria-label="Delete saved resume">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <div className="container mx-auto max-w-7xl py-12">
+        {/* Branding + education */}
+        <header className="mb-12">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span
+                className="grid h-12 w-12 place-items-center rounded-xl text-xl font-black text-[#14030b]"
+                style={{ backgroundImage: 'linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)' }}
+              >
+                R
+              </span>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Resumait</h1>
+                <p className="text-sm text-muted-foreground">Comprehensive resume optimization for the AI era.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={openSavedResumes}
+                variant="outline"
+                className="h-10 gap-2 rounded-full border-2 px-5 text-[11px] font-bold uppercase tracking-[0.14em]"
+              >
+                <FolderOpen className="h-4 w-4" /> Saved
+              </Button>
+              <a
+                data-no-arrow
+                href="https://www.dcnewsnow.com/tech-talk/tech-talk-innovation-hub-opens-doors-for-startups-and-job-seekers-weekly/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-primary transition hover:bg-primary/20"
+              >
+                <span className="h-2 w-2 rounded-full bg-primary" /> As Seen On DC News Now
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-8 rounded-2xl border-2 border-primary/10 bg-primary/[0.03] p-6">
+            <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-primary">Why this matters</p>
+            <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
+              Modern hiring runs through applicant tracking systems and AI-assisted screening before a human ever reads your resume. These four fundamentals determine whether your experience is parsed accurately, surfaced in searches, and understood quickly.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { icon: FileText, title: 'ATS Parseability', body: 'Clean structure and standard sections so tracking systems read your resume accurately and recruiters can search and find you.' },
+                { icon: BarChart3, title: 'Quantified Impact', body: 'At least one measurable, outcome-oriented bullet under each recent role — the scope, scale, and value that AI and humans can evaluate.' },
+                { icon: UserCircle, title: 'Complete Contact Info', body: 'Name, city and state, phone, a professional email, LinkedIn, and any relevant portfolio, so nothing blocks a recruiter from reaching you.' },
+                { icon: Type, title: 'Professional Headline', body: 'A one-line, six-to-fourteen-word signal with your target title plus a meaningful differentiator, placed right below your contact line.' },
+              ].map((tip) => {
+                const Icon = tip.icon;
+                return (
+                  <div key={tip.title} className="rounded-xl border border-primary/10 bg-background/40 p-4">
+                    <span className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <p className="text-sm font-bold text-foreground">{tip.title}</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{tip.body}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </header>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <div className="space-y-10">
             <section className="space-y-4">
@@ -1033,6 +1200,16 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
                                           >
                                             {isSpellChecking ? <Loader2 className="h-4 w-4 animate-spin mr-2"/> : <CheckCircle2 className="h-4 w-4 mr-2 text-green-600"/>}
                                             SPELL CHECK
+                                          </Button>
+
+                                          <Button
+                                            onClick={handleSaveResume}
+                                            disabled={isSaving}
+                                            variant="outline"
+                                            className="h-10 font-black uppercase text-[9px] tracking-widest px-4 border-2 hover:border-primary transition-all shadow-md"
+                                          >
+                                            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2"/> : <Save className="h-4 w-4 mr-2"/>}
+                                            SAVE
                                           </Button>
 
                                           <div className="flex h-10">

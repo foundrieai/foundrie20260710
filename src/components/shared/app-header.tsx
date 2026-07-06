@@ -13,12 +13,13 @@ import { Menu, X } from 'lucide-react';
 const marketingLinks = [
   { href: '/company', label: 'Company' },
   { href: '/career', label: 'Career' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '/resources', label: 'Resources' },
   { href: '/about', label: 'About' },
   { href: '/connect', label: 'Connect' },
 ];
 
-const marketingPrefixes = ['/', '/career', '/company', '/brandforge', '/branddynamo', '/resources', '/about', '/connect'];
+const marketingPrefixes = ['/', '/career', '/company', '/brandforge', '/branddynamo', '/resources', '/pricing', '/about', '/connect'];
 
 export const AppHeader = () => {
   const { user, isUserLoading } = useUser();
@@ -74,19 +75,19 @@ export const AppHeader = () => {
         isScrolled && "foundrie-liquid-nav--scrolled"
       )}
     >
-      <div className="container flex h-[74px] items-center justify-between relative">
-        <div className="flex items-center">
+      <div className="container flex h-[74px] items-center justify-between gap-6 relative">
+        <div className="flex shrink-0 items-center">
           <Logo />
         </div>
-        
+
         {isMarketingRoute && (
-          <nav className="hidden xl:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-[12px] font-bold uppercase tracking-[0.14em] text-white/78">
+          <nav className="hidden min-[1120px]:flex flex-1 justify-center items-center gap-8 text-[12px] font-bold uppercase tracking-[0.14em] text-white/78">
             {marketingLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "transition-colors hover:text-white",
+                  "whitespace-nowrap transition-colors hover:text-white",
                   pathname === link.href && "text-[#ff7a00]"
                 )}
               >
@@ -97,27 +98,27 @@ export const AppHeader = () => {
         )}
 
         {!isMarketingRoute && !isUserLoading && user && (
-          <nav className="hidden xl:flex absolute left-1/2 -translate-x-1/2 items-center gap-7 text-[13px] font-bold uppercase tracking-[0.12em] text-white/72">
+          <nav className="hidden min-[1120px]:flex flex-1 justify-center items-center gap-7 text-[13px] font-bold uppercase tracking-[0.12em] text-white/72">
             {authenticatedLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="transition-colors hover:text-white">
+              <Link key={link.href} href={link.href} className="whitespace-nowrap transition-colors hover:text-white">
                 {link.label}
               </Link>
             ))}
           </nav>
         )}
-        
-        <div className="flex items-center space-x-4">
+
+        <div className="flex shrink-0 items-center space-x-4">
           {isMarketingRoute ? (
-            <div className="hidden xl:flex items-center space-x-4">
+            <div className="hidden min-[1120px]:flex items-center space-x-4">
               <Link href="/login" className="text-xs font-bold uppercase tracking-[0.12em] text-white/85 transition-colors hover:text-white">
                 Sign In
               </Link>
-              <Button asChild className="h-11 rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-6 text-xs font-bold uppercase tracking-[0.12em] text-[#14030b] shadow-[0_0_28px_rgba(255,48,0,0.34)] hover:opacity-95 hover:shadow-[0_0_44px_rgba(255,48,0,0.44)]">
+              <Button asChild className="h-11 whitespace-nowrap rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-6 text-xs font-bold uppercase tracking-[0.12em] text-[#14030b] shadow-[0_0_28px_rgba(255,48,0,0.34)] hover:opacity-95 hover:shadow-[0_0_44px_rgba(255,48,0,0.44)]">
                 <Link href="/signup">Get Started for Free &gt;</Link>
               </Button>
             </div>
           ) : !isUserLoading && !user ? (
-            <div className="hidden xl:flex items-center space-x-4">
+            <div className="hidden min-[1120px]:flex items-center space-x-4">
               <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                 Sign In
               </Link>
@@ -133,7 +134,7 @@ export const AppHeader = () => {
             aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={isMenuOpen}
             className={cn(
-              'inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-colors hover:border-[#ff7a00]/60 hover:bg-white/10 xl:hidden',
+              'inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-colors hover:border-[#ff7a00]/60 hover:bg-white/10 min-[1120px]:hidden',
               !isMarketingRoute && !(!isUserLoading && !user) && !user && 'hidden'
             )}
             onClick={() => setIsMenuOpen((open) => !open)}
@@ -148,7 +149,7 @@ export const AppHeader = () => {
         style={{ transform: `scaleX(${scrollProgress})` }}
       />
       {isMenuOpen && (
-        <div className="xl:hidden border-t border-white/10 bg-[#08070c]/96 px-6 py-5 shadow-[0_22px_54px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+        <div className="min-[1120px]:hidden border-t border-white/10 bg-[#08070c]/96 px-6 py-5 shadow-[0_22px_54px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
           <nav className="grid gap-3 text-sm font-bold uppercase tracking-[0.14em] text-white/78">
             {collapsedLinks.map((link) => (
               <Link

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ideamaitValidateActivity } from '@/ai/flows/ideamait-validate-activity';
+import { aiErrorResponse } from '@/ai/ai-errors';
 
 export async function POST(request: Request) {
   try {
@@ -7,7 +8,6 @@ export async function POST(request: Request) {
     const result = await ideamaitValidateActivity({ context });
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Activity validation failed', error);
-    return NextResponse.json({ error: 'Activity validation failed' }, { status: 500 });
+    return aiErrorResponse(error, 'ideamait/validate-activity');
   }
 }

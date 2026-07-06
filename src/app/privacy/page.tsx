@@ -1,5 +1,10 @@
 import { LegalPage } from '@/components/legal/legal-page';
 
+export const metadata = {
+  title: 'Privacy Policy',
+  description: 'How Foundrie AI collects, uses, and protects your information.',
+};
+
 export default function PrivacyPage() {
   return (
     <LegalPage

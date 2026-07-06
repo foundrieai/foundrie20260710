@@ -1,5 +1,10 @@
 import { LegalPage } from '@/components/legal/legal-page';
 
+export const metadata = {
+  title: 'Terms of Service',
+  description: 'The terms that govern your use of the Foundrie AI platform.',
+};
+
 export default function TermsPage() {
   return (
     <LegalPage

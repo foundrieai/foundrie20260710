@@ -1958,3 +1958,221 @@ footer {
 .brandforge-skin [role="button"] {
   font-family: "Clash Display", "Plus Jakarta Sans", sans-serif;
 }
+
+/* ============================================================
+   BrandForge skin — comprehensive dark mapping.
+   The inner pages were authored against a light Tailwind palette;
+   these rules map the remaining classes onto the FOUNDRIE dark
+   design language so every page reads like the rest of the site.
+   ============================================================ */
+
+/* Additional light surfaces -> dark glass */
+.brandforge-skin .bg-slate-200,
+.brandforge-skin .bg-slate-300,
+.brandforge-skin .bg-purple-50,
+.brandforge-skin .bg-rose-50 {
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(255, 196, 0, 0.06), transparent 45%),
+    radial-gradient(90% 120% at 100% 100%, rgba(230, 0, 201, 0.06), transparent 45%),
+    rgba(244, 241, 246, 0.05) !important;
+}
+
+/* Dark panels/headers used inside the light layout */
+.brandforge-skin .bg-slate-800,
+.brandforge-skin .bg-slate-700 {
+  background: rgba(14, 12, 20, 0.72) !important;
+  color: var(--foundrie-bone) !important;
+}
+
+/* Tinted status badge backgrounds */
+.brandforge-skin .bg-green-100 { background: rgba(95, 208, 163, 0.16) !important; }
+.brandforge-skin .bg-red-100,
+.brandforge-skin .bg-rose-100 { background: rgba(255, 107, 112, 0.16) !important; }
+.brandforge-skin .bg-amber-100,
+.brandforge-skin .bg-yellow-100 { background: rgba(255, 192, 97, 0.16) !important; }
+
+/* Accent text (links, active nav, highlighted values) -> warm accent */
+.brandforge-skin .text-blue-600,
+.brandforge-skin .text-blue-500,
+.brandforge-skin .text-blue-400 { color: #ffb14a !important; }
+
+/* Muted text shades not covered above */
+.brandforge-skin .text-slate-300,
+.brandforge-skin .text-slate-200,
+.brandforge-skin .text-purple-400,
+.brandforge-skin .text-purple-500 { color: rgba(244, 241, 246, 0.55) !important; }
+
+/* Meaningful status text, tuned for the dark background */
+.brandforge-skin .text-green-500,
+.brandforge-skin .text-green-700,
+.brandforge-skin .text-emerald-500,
+.brandforge-skin .text-emerald-600 { color: #5fd0a3 !important; }
+.brandforge-skin .text-red-500,
+.brandforge-skin .text-red-600,
+.brandforge-skin .text-red-700,
+.brandforge-skin .text-rose-500,
+.brandforge-skin .text-rose-600 { color: #ff6b70 !important; }
+.brandforge-skin .text-amber-500,
+.brandforge-skin .text-amber-600,
+.brandforge-skin .text-yellow-500,
+.brandforge-skin .text-orange-500 { color: #ffc061 !important; }
+.brandforge-skin .text-purple-600,
+.brandforge-skin .text-purple-700,
+.brandforge-skin .text-purple-800 { color: #e88bf0 !important; }
+
+/* Remaining light borders -> hairline */
+.brandforge-skin .border-slate-300,
+.brandforge-skin .border-slate-250,
+.brandforge-skin .border-slate-50,
+.brandforge-skin .border-slate-900,
+.brandforge-skin .border-blue-300,
+.brandforge-skin .border-blue-400,
+.brandforge-skin .border-blue-500,
+.brandforge-skin .border-blue-600,
+.brandforge-skin .border-rose-100,
+.brandforge-skin .border-white {
+  border-color: rgba(244, 241, 246, 0.14) !important;
+}
+
+/* Focus rings and accent shadows -> molten accent */
+.brandforge-skin .ring-blue-500,
+.brandforge-skin .ring-purple-500 {
+  --tw-ring-color: rgba(255, 122, 0, 0.5) !important;
+}
+.brandforge-skin [class*="shadow-blue-500"] {
+  --tw-shadow-color: rgba(255, 122, 0, 0.35) !important;
+  box-shadow: 0 12px 34px rgba(255, 48, 0, 0.18) !important;
+}
+
+/* Dividers */
+.brandforge-skin .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(244, 241, 246, 0.1) !important;
+}
+
+/* Accent buttons not yet covered */
+.brandforge-skin .bg-blue-500,
+.brandforge-skin .hover\:bg-blue-600:hover {
+  background: var(--foundrie-molten) !important;
+  color: #15040b !important;
+}
+
+/* ============================================================
+   Animated molten gradient — every yellow-to-magenta button on
+   the React side of the platform, matching the homepage hero
+   "Explore the Suites" button (moltenShift).
+   ============================================================ */
+@keyframes moltenShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Tailwind arbitrary molten backgrounds all carry the final stop
+   "#e600c9" in their class name. Match them (but never gradient text).
+   Also cover the shadcn primary buttons, mapped to molten via .bg-primary. */
+[class*="e600c9"]:not(.bg-clip-text),
+.bg-primary:not(.bg-clip-text),
+button.bg-primary,
+.molten-animate {
+  background-size: 220% 100% !important;
+  animation: moltenShift 5s ease infinite;
+}
+
+/* BrandForge molten buttons use var(--foundrie-molten). */
+.brandforge-skin .bg-blue-600,
+.brandforge-skin .hover\:bg-blue-700:hover,
+.brandforge-skin .bg-slate-900,
+.brandforge-skin .hover\:bg-slate-800:hover,
+.brandforge-skin .bg-green-500,
+.brandforge-skin .bg-green-600,
+.brandforge-skin .bg-red-500,
+.brandforge-skin .bg-amber-500,
+.brandforge-skin .bg-purple-600,
+.brandforge-skin .bg-blue-500 {
+  background-size: 220% 100% !important;
+  animation: moltenShift 5s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="e600c9"]:not(.bg-clip-text),
+  .molten-animate,
+  .brandforge-skin .bg-blue-600,
+  .brandforge-skin .bg-purple-600 {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Report / LaunchCode phase skin. The validation-report and
+   phase sub-components were authored against a light Tailwind
+   palette; map them onto the dark theme. Screen only — the
+   @media print rules above still force a light print layout.
+   ============================================================ */
+.report-skin .bg-white,
+.report-skin .bg-slate-50,
+.report-skin .bg-slate-100,
+.report-skin .bg-slate-200,
+.report-skin .bg-blue-50,
+.report-skin .bg-blue-100,
+.report-skin .bg-green-50,
+.report-skin .bg-amber-50,
+.report-skin .bg-red-50,
+.report-skin .bg-purple-50 {
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(255, 196, 0, 0.06), transparent 45%),
+    radial-gradient(90% 120% at 100% 100%, rgba(230, 0, 201, 0.06), transparent 45%),
+    rgba(244, 241, 246, 0.045) !important;
+}
+.report-skin .bg-slate-900,
+.report-skin .bg-slate-800 {
+  background: rgba(14, 12, 20, 0.7) !important;
+  color: var(--foundrie-bone) !important;
+}
+.report-skin .text-slate-900,
+.report-skin .text-slate-800,
+.report-skin .text-slate-700,
+.report-skin .text-blue-900,
+.report-skin .text-blue-800 { color: var(--foundrie-bone) !important; }
+.report-skin .text-slate-600,
+.report-skin .text-slate-500,
+.report-skin .text-slate-400,
+.report-skin .text-slate-300 { color: rgba(244, 241, 246, 0.62) !important; }
+.report-skin .text-blue-600,
+.report-skin .text-blue-500,
+.report-skin .text-blue-700 { color: #ffb14a !important; }
+.report-skin .text-green-600,
+.report-skin .text-green-700,
+.report-skin .text-emerald-600 { color: #5fd0a3 !important; }
+.report-skin .text-red-600,
+.report-skin .text-red-500,
+.report-skin .text-rose-600 { color: #ff6b70 !important; }
+.report-skin .text-amber-600,
+.report-skin .text-amber-500,
+.report-skin .text-orange-500 { color: #ffc061 !important; }
+.report-skin .border-slate-100,
+.report-skin .border-slate-200,
+.report-skin .border-slate-300,
+.report-skin .border-blue-100,
+.report-skin .border-blue-200,
+.report-skin .border-green-200,
+.report-skin .border-white {
+  border-color: rgba(244, 241, 246, 0.14) !important;
+}
+.report-skin .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.report-skin .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(244, 241, 246, 0.1) !important;
+}
+.report-skin .bg-blue-600,
+.report-skin .hover\:bg-blue-700:hover,
+.report-skin .bg-green-600 {
+  background: var(--foundrie-molten) !important;
+  background-size: 220% 100% !important;
+  animation: moltenShift 5s ease infinite;
+  color: #15040b !important;
+}
+.report-skin input,
+.report-skin textarea,
+.report-skin select {
+  background: rgba(8, 7, 12, 0.62) !important;
+  border-color: rgba(244, 241, 246, 0.14) !important;
+  color: var(--foundrie-bone) !important;
+}

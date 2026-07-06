@@ -32,14 +32,14 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Ideation', id: 'ideation', href: '/ideation', icon: Lightbulb, state: 'complete' },
   { label: 'Validation', id: 'validation', href: '/new', icon: CheckCircle2, state: 'in-progress' },
-  { label: 'Evidence Vault', id: 'vault', href: '/vault', icon: Archive, state: 'in-progress' },
-  { label: 'Decision Log', id: 'decisions', href: '/decisions', icon: ClipboardList, state: 'in-progress' },
-  { label: 'Portfolio Map', id: 'portfolio', href: '/portfolio', icon: Map, state: 'in-progress' },
   { label: 'Problem-Solution Fit', id: 'problem_solution_fit_extended', href: '/phases/psf', icon: Puzzle, state: 'in-progress' },
   { label: 'Product-Market Fit', id: 'product_market_fit', href: '/phases/pmf', icon: Target, state: 'locked' },
   { label: 'Go-to-Market Fit', id: 'go_to_market_fit', href: '/phases/gtm', icon: Rocket, state: 'locked' },
   { label: 'Growth', id: 'growth_scale', href: '/phases/growth', icon: TrendingUp, state: 'locked' },
   { label: 'Exit', id: 'maturity_exit', href: '/phases/exit', icon: LogOut, state: 'locked' },
+  { label: 'Evidence Vault', id: 'vault', href: '/vault', icon: Archive, state: 'in-progress' },
+  { label: 'Decision Log', id: 'decisions', href: '/decisions', icon: ClipboardList, state: 'in-progress' },
+  { label: 'Portfolio Map', id: 'portfolio', href: '/portfolio', icon: Map, state: 'in-progress' },
 ];
 
 import React, { Suspense } from 'react';

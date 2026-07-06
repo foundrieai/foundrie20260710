@@ -116,8 +116,8 @@ export function ReportCard({ report }: ReportCardProps) {
         <p className="text-xs text-muted-foreground">
           Created on {format(parseISO(report.createdAt), 'MMM d, yyyy')}
         </p>
-        <div className="flex w-full justify-between items-center">
-            <div className="flex gap-2">
+        <div className="flex w-full flex-wrap justify-between items-center gap-3">
+            <div className="flex flex-wrap gap-2">
               <Button variant="default" size="sm" asChild className="shadow-button-primary hover:shadow-button-primary-hover">
                   <Link href={`/report/${report.userId}/${report.id}`}>
                       <Eye className="mr-2 h-4 w-4" /> View
