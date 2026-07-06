@@ -1147,10 +1147,10 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
                               <CardContent className="pt-0 px-0">
                                   <div className={cn(
                                       "grid transition-all duration-500",
-                                      showComparison ? "grid-cols-2" : "grid-cols-1"
+                                      showComparison ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
                                   )}>
                                       {showComparison && (
-                                        <div className="border-r-2 h-[600px] bg-muted/10 overflow-hidden relative">
+                                        <div className="border-b-2 md:border-b-0 md:border-r-2 h-[400px] md:h-[600px] bg-muted/10 overflow-hidden relative">
                                           <div className="absolute top-4 left-4 z-10"><Badge className="bg-muted text-muted-foreground font-black uppercase text-[9px]">Original Input</Badge></div>
                                           <div className="h-full overflow-auto p-10 font-mono text-[10px] opacity-40 leading-relaxed whitespace-pre-wrap">
                                             {resumeValue}
