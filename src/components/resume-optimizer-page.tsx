@@ -931,11 +931,11 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
                 <p className="text-sm font-bold text-zinc-600 uppercase tracking-wider ml-11">See how well your resume matches this job.</p>
               </div>
               <div className="relative">
-                  <Button variant="outline" onClick={handleInitialMatch} disabled={isAnalyzing || isLoading || !isStep3Complete} className="w-full h-auto py-10 flex-col gap-4 border-2 border-primary/10 hover:border-primary transition-all shadow-xl group bg-background/50 backdrop-blur-sm relative">
+                  <Button variant="outline" onClick={handleInitialMatch} disabled={isAnalyzing || isLoading || !isStep3Complete} className="w-full h-auto py-10 flex-col gap-4 whitespace-normal border-2 border-primary/10 hover:border-primary transition-all shadow-xl group bg-background/50 backdrop-blur-sm relative">
                       <InfoTooltip text="The weighted scoring engine audits your resume against the extracted requirements, evaluating keyword placement, title alignment, and formatting." className="top-2 right-2" />
                       {isAnalyzing ? <Loader2 className="animate-spin h-10 w-10 text-primary"/> : <BarChart3 className="h-10 w-10 text-primary group-hover:scale-110 transition-transform"/>}
                       <div className="text-center">
-                        <p className="font-black text-xl uppercase tracking-widest text-primary">CALCULATE ATS MATCH SCORE</p>
+                        <p className="font-black text-base sm:text-xl uppercase tracking-widest text-primary">CALCULATE ATS MATCH SCORE</p>
                         <p className="text-sm font-bold text-zinc-600 uppercase tracking-wider mt-1">Scored across keywords, title, skills & formatting.</p>
                       </div>
                   </Button>

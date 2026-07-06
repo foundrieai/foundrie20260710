@@ -76,7 +76,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         {...props}
       >
-        {size === 'icon' ? children : withActionArrow(children)}
+        {size !== 'icon' && (variant == null || variant === 'default')
+          ? withActionArrow(children)
+          : children}
       </Comp>
     )
   }
