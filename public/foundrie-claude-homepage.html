@@ -648,6 +648,27 @@ h2 .line>span{display:block;will-change:transform}
 .pi-empty[hidden]{display:none}
 .pi-empty strong{font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:-.01em;color:var(--bone)}
 .pi-empty p{color:var(--smoke);font-size:16px;line-height:1.5;margin:0}
+.pi-card{cursor:pointer}
+.pi-contact-hint{margin-left:auto;align-self:center;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);transition:gap .25s}
+.pi-card:hover .pi-contact-hint{color:var(--ember)}
+/* Contact-founder modal */
+.pi-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:24px}
+.pi-modal.open{display:flex}
+.pi-modal-backdrop{position:absolute;inset:0;background:rgba(4,3,8,.74);backdrop-filter:blur(6px)}
+.pi-modal-card{position:relative;width:min(480px,100%);max-height:90vh;overflow:auto;border:1px solid var(--line);border-radius:24px;padding:34px;background:linear-gradient(135deg,rgba(22,19,31,.99),rgba(14,12,20,.99));box-shadow:0 40px 110px rgba(0,0,0,.55)}
+.pi-modal-card h3{font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:-.012em;margin:0 0 6px;color:var(--bone)}
+.pi-modal-card .pi-modal-sub{color:var(--smoke);font-size:14px;line-height:1.5;margin:0 0 22px}
+.pi-modal-close{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(244,241,246,.05);color:var(--bone);cursor:pointer;font-size:18px;line-height:1}
+.pi-modal-close:hover{border-color:rgba(244,241,246,.3)}
+.pi-field{margin-bottom:14px}
+.pi-field label{display:block;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--smoke);margin-bottom:7px}
+.pi-field input,.pi-field textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:rgba(8,7,12,.6);color:var(--bone);padding:12px 14px;font-family:var(--font-body);font-weight:500;font-size:14px;outline:none;resize:vertical}
+.pi-field input:focus,.pi-field textarea:focus{border-color:rgba(255,122,0,.6)}
+.pi-modal-card form .btn{width:100%;justify-content:center;margin-top:6px}
+.pi-signup-note{margin-top:18px;text-align:center;font-size:13px;color:var(--smoke)}
+.pi-signup-note a{color:var(--gold);font-weight:700}
+.pi-success{text-align:center;padding:14px 0}
+.pi-success .pi-check{width:56px;height:56px;border-radius:50%;background:var(--molten);display:grid;place-items:center;margin:0 auto 18px;color:#14030b;font-size:26px;font-weight:700}
 @media(prefers-reduced-motion:reduce){
   .pi-track{animation:none}
   .pi-viewport{overflow-x:auto}
@@ -1075,6 +1096,30 @@ body.no-anim .seam-line{transform:scaleX(1)}
       <strong>The forge is warming up.</strong>
       <p>No founders have promoted an idea to the public wall yet. Start building in LaunchCode, and your venture could be the first to appear here.</p>
       <a class="btn btn-molten magnetic" href="/signup" target="_top" data-hot><span>Start Building for Free &gt;</span></a>
+    </div>
+  </div>
+
+  <!-- Contact-founder modal -->
+  <div class="pi-modal" id="pi-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="pi-modal-backdrop" data-pi-close></div>
+    <div class="pi-modal-card">
+      <button class="pi-modal-close" type="button" data-pi-close aria-label="Close">&times;</button>
+      <div id="pi-modal-form-wrap">
+        <h3 id="pi-modal-title">Contact the founder</h3>
+        <p class="pi-modal-sub" id="pi-modal-sub">Send a message about this idea. Your email is shared so the founder can reply.</p>
+        <form id="pi-contact-form">
+          <div class="pi-field"><label for="pi-c-name">Your name</label><input id="pi-c-name" type="text" autocomplete="name" required></div>
+          <div class="pi-field"><label for="pi-c-email">Your email</label><input id="pi-c-email" type="email" autocomplete="email" required></div>
+          <div class="pi-field"><label for="pi-c-message">Message</label><textarea id="pi-c-message" rows="4" required></textarea></div>
+          <button class="btn btn-molten" type="submit"><span>Send Message &gt;</span></button>
+        </form>
+        <p class="pi-signup-note">Not a member yet? <a href="/signup" target="_top">Sign up for free &gt;</a></p>
+      </div>
+      <div id="pi-modal-success" class="pi-success" hidden>
+        <div class="pi-check">&#10003;</div>
+        <h3>Message sent.</h3>
+        <p class="pi-modal-sub" style="margin-bottom:0">The founder will receive your message and can reply to your email. Thank you for reaching out.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1979,7 +2024,7 @@ if(window.parent !== window){
 <!-- PROMOTED IDEAS: live Firestore gallery -->
 <script type="module">
   import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-  import { getFirestore, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+  import { getFirestore, collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
   const firebaseConfig = {
     projectId: "studio-2154202824-aba5a",
@@ -2018,12 +2063,14 @@ if(window.parent !== window){
     const tags = [];
     if (r.industry) tags.push('<span class="pi-tag">' + esc(r.industry) + '</span>');
     if (r.stage) tags.push('<span class="pi-tag">' + esc(r.stage) + '</span>');
+    const ideaId = esc(r._id || r.id || '');
+    const owner = esc(r.userId || '');
     return (
-      '<a class="pi-card" href="/signup" target="_top" data-hot>' +
+      '<div class="pi-card" role="button" tabindex="0" data-hot data-idea-id="' + ideaId + '" data-owner="' + owner + '" data-title="' + name + '">' +
         '<div class="pi-top">' + scoreEl + '<span class="pi-badge"><i></i> Promoted</span></div>' +
         '<div class="pi-body"><h3>' + name + '</h3><p>' + tagline + '</p></div>' +
-        '<div class="pi-foot">' + tags.join('') + '</div>' +
-      '</a>'
+        '<div class="pi-foot">' + tags.join('') + '<span class="pi-contact-hint">Contact founder &gt;</span></div>' +
+      '</div>'
     );
   }
 
@@ -2046,13 +2093,105 @@ if(window.parent !== window){
       const db = getFirestore(app);
       const snap = await getDocs(query(collection(db, 'promotedReports'), orderBy('updatedAt', 'desc'), limit(12)));
       const reports = [];
-      snap.forEach(d => reports.push(d.data()));
+      snap.forEach(d => reports.push({ ...d.data(), _id: d.id }));
       render(reports);
     } catch (err) {
       console.warn('Promoted ideas unavailable:', err && err.message ? err.message : err);
       showEmpty();
     }
   }
+
+  /* ============ CONTACT FOUNDER MODAL ============ */
+  (function(){
+    const modal = document.getElementById('pi-modal');
+    if (!modal || !track) return;
+    const formWrap = document.getElementById('pi-modal-form-wrap');
+    const successEl = document.getElementById('pi-modal-success');
+    const form = document.getElementById('pi-contact-form');
+    const subEl = document.getElementById('pi-modal-sub');
+    let current = { id: '', owner: '', title: 'this idea' };
+
+    function positionModal(){
+      // The homepage is embedded at full height, so position:fixed would center
+      // the modal in the whole page. Anchor it over the visible viewport band.
+      try {
+        if (window.parent && window.parent !== window && window.frameElement) {
+          const rect = window.frameElement.getBoundingClientRect();
+          const viewportTopInFrame = Math.max(0, -rect.top);
+          const vh = window.parent.innerHeight || window.innerHeight;
+          if (modal.parentNode !== document.body) document.body.appendChild(modal);
+          modal.style.position = 'absolute';
+          modal.style.top = viewportTopInFrame + 'px';
+          modal.style.left = '0';
+          modal.style.right = '0';
+          modal.style.height = vh + 'px';
+          return;
+        }
+      } catch (e) { /* fall through to fixed */ }
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.height = '';
+    }
+    function openModal(card){
+      current = {
+        id: card.getAttribute('data-idea-id') || '',
+        owner: card.getAttribute('data-owner') || '',
+        title: card.getAttribute('data-title') || 'this idea',
+      };
+      subEl.textContent = 'Send a message to the founder behind ' + current.title + '. Your email is shared so they can reply.';
+      formWrap.hidden = false;
+      successEl.hidden = true;
+      form.reset();
+      positionModal();
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    function closeModal(){
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    track.addEventListener('click', function(e){
+      const card = e.target.closest('.pi-card');
+      if (card) openModal(card);
+    });
+    track.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest && e.target.closest('.pi-card');
+      if (card){ e.preventDefault(); openModal(card); }
+    });
+    modal.querySelectorAll('[data-pi-close]').forEach(el => el.addEventListener('click', closeModal));
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal.classList.contains('open')) closeModal(); });
+
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+      const name = document.getElementById('pi-c-name').value.trim();
+      const email = document.getElementById('pi-c-email').value.trim();
+      const message = document.getElementById('pi-c-message').value.trim();
+      if (!name || !email || !message) return;
+      const submitBtn = form.querySelector('button[type="submit"] span');
+      const label = submitBtn ? submitBtn.textContent : '';
+      if (submitBtn) submitBtn.textContent = 'Sending…';
+      try {
+        const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        await addDoc(collection(db, 'ideaInquiries'), {
+          ideaId: current.id,
+          ownerUserId: current.owner,
+          ideaTitle: current.title,
+          senderName: name,
+          senderEmail: email,
+          message: message,
+          createdAt: serverTimestamp(),
+        });
+        formWrap.hidden = true;
+        successEl.hidden = false;
+      } catch (err) {
+        if (submitBtn) submitBtn.textContent = label || 'Send Message >';
+        alert('Your message could not be sent. Please try again in a moment.');
+      }
+    });
+  })();
 </script>
 </body>
 </html>

@@ -61,5 +61,13 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if isAdmin();
     }
+
+    // Inquiries sent to a founder about a promoted idea. Anyone may send; the
+    // idea's owner (or an admin) may read them.
+    match /ideaInquiries/{inquiryId} {
+      allow create: if true;
+      allow read: if request.auth != null && (request.auth.uid == resource.data.ownerUserId || isAdmin());
+      allow update, delete: if isAdmin();
+    }
   }
 }
