@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Plus,
   X,
+  Menu,
   Info,
   Calendar,
   MessageSquare,
@@ -39,6 +40,7 @@ export const Layout: React.FC<{ children: React.ReactNode; currentPath: string; 
     setCurrentPath
   } = useApp();
 
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isAddingBrand, setIsAddingBrand] = useState(false);
   const [newBrandName, setNewBrandName] = useState('');
   const [newBrandVoice, setNewBrandVoice] = useState('');
@@ -112,12 +114,31 @@ export const Layout: React.FC<{ children: React.ReactNode; currentPath: string; 
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
-      <Sidebar currentPath={currentPath} onNavigate={onNavigate} />
-      
+      {/* Sidebar: static on desktop, slide-over drawer on mobile */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 bg-[#0e0c14] shadow-2xl transition-transform duration-300 md:static md:z-auto md:translate-x-0 md:bg-transparent md:shadow-none",
+          mobileNavOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <Sidebar currentPath={currentPath} onNavigate={(p) => { onNavigate(p); setMobileNavOpen(false); }} />
+      </div>
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setMobileNavOpen(false)} />
+      )}
+
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Bar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10">
-          <div className="flex items-center space-x-6">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between gap-3 px-4 md:px-8 shrink-0 z-10">
+          <button
+            type="button"
+            aria-label="Open menu"
+            className="md:hidden shrink-0 grid h-9 w-9 place-items-center rounded-md border border-slate-200 bg-slate-50 text-slate-700"
+            onClick={() => setMobileNavOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center space-x-6 min-w-0 overflow-hidden">
             <div className="flex items-center space-x-2">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Identity:</span>
               <div className="relative group">
