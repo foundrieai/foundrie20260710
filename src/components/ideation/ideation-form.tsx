@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateIdeationConcepts, extractFounderProfile, isIdeationAIConfigured, FounderProfile } from '@/ai/flows/generate-ideation-concepts';
+import { processFile } from '@/lib/file-processor';
 import { Loader2, Sparkles, Upload, UserPlus, Trash2, RotateCcw, Brain, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { IdeaCard } from './idea-card';
@@ -73,17 +74,27 @@ export function IdeationForm() {
     setCreativityLevel(3);
   };
 
-  const handleFileUpload = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     handleFounderChange(id, 'fileName', file.name);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const text = event.target?.result as string;
-      handleFounderChange(id, 'fileText', text);
-    };
-    reader.readAsText(file);
+    handleFounderChange(id, 'fileText', '');
+
+    const result = await processFile(file);
+    if (result.extractionStatus === 'success' && result.extractedText) {
+      handleFounderChange(id, 'fileText', result.extractedText);
+      toast({ title: 'File processed', description: `Extracted text from ${file.name}.` });
+    } else {
+      handleFounderChange(id, 'fileName', '');
+      toast({
+        variant: 'destructive',
+        title: 'Could not read that file',
+        description: result.error || 'Please try a PDF, Word, or TXT file, or use the Quick Questionnaire.',
+      });
+    }
+    // Allow re-selecting the same file after an error.
+    e.target.value = '';
   };
 
   const handleExtractProfile = async () => {
@@ -260,12 +271,12 @@ export function IdeationForm() {
                     <Label htmlFor={`resume-upload-${fieldUid}-${index}`} className="cursor-pointer text-center">
                       <span className="text-primary font-medium">Click to upload</span> or drag and drop
                       <br />
-                      <span className="text-sm text-muted-foreground mt-1 block">PDF or TXT (Max 5MB)</span>
+                      <span className="text-sm text-muted-foreground mt-1 block">PDF, Word, ODT, RTF, or TXT (Max 5MB)</span>
                     </Label>
                     <Input 
                       id={`resume-upload-${fieldUid}-${index}`} 
                       type="file" 
-                      accept=".pdf,.txt" 
+                      accept=".pdf,.doc,.docx,.odt,.rtf,.txt,.md"
                       className="hidden" 
                       onChange={(e) => handleFileUpload(founder.id, e)} 
                     />
@@ -284,7 +295,7 @@ export function IdeationForm() {
                     <Input 
                       id={`linkedin-upload-${fieldUid}-${index}`} 
                       type="file" 
-                      accept=".pdf,.txt" 
+                      accept=".pdf,.doc,.docx,.odt,.rtf,.txt,.md"
                       className="hidden" 
                       onChange={(e) => handleFileUpload(founder.id, e)} 
                     />

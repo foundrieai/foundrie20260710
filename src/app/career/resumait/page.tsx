@@ -1,4 +1,6 @@
 import ResumeOptimizerPage from '@/components/resume-optimizer-page';
+import { FaqSection } from '@/components/shared/faq-section';
+import { resumaitFaqs } from '@/lib/faqs';
 import {
   counselorChat,
   getInitialAnalysis,
@@ -28,6 +30,13 @@ export default function ResumaitPage() {
           runSpellCheck,
           runGenerateCoverLetter,
         }}
+      />
+      <FaqSection
+        eyebrow="Resumait FAQ"
+        heading="Common questions about Resumait."
+        subheading="How resume optimization, ATS scoring, and career guidance work inside Foundrie AI."
+        items={resumaitFaqs}
+        className="-mx-4 md:-mx-8"
       />
     </main>
   );

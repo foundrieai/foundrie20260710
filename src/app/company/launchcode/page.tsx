@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, ClipboardList, Lightbulb, LogOut, Map, Puzzle, Rocket, Target, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { MagneticButton } from '@/components/shared/magnetic-button';
+import { FaqSection } from '@/components/shared/faq-section';
+import { launchCodeFaqs } from '@/lib/faqs';
 
 const launchCodeEntries = [
   {
@@ -72,21 +74,26 @@ export default function LaunchCodeHubPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_0%,rgba(255,122,0,0.28),transparent_34%),radial-gradient(circle_at_0%_70%,rgba(255,48,0,0.14),transparent_35%)]" />
         <div className="container relative py-24 md:py-32">
           <div className="max-w-4xl">
-            <p className="font-code text-xs uppercase tracking-[0.24em] text-white/45">Company Suite Flagship</p>
+            <p
+              className="foundrie-gradient-text text-xs font-bold uppercase tracking-[0.26em]"
+              style={{
+                fontFamily: 'var(--font-clash), var(--font-display, sans-serif)',
+                backgroundImage: 'linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                color: 'transparent',
+              }}
+            >
+              Company Suite Flagship &gt;
+            </p>
             <h1 className="mt-5 text-5xl font-bold leading-tight tracking-normal text-white md:text-7xl">LaunchCode</h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-white/68">
               The evidence-first founder operating system inside Foundrie AI. LaunchCode helps founders find the idea worth building, prove the market before they overbuild, and execute phase by phase with evidence, decisions, and milestones in view.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Button asChild className="rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-7 font-bold text-black hover:opacity-90">
-                <Link href="/ideation">
-                  Start with Ideation
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="rounded-full border-white/20 bg-black/20 px-7 text-white hover:bg-white/10">
-                <Link href="/new">Validate an idea</Link>
-              </Button>
+              <MagneticButton variant="molten" href="/ideation">Start with Ideation &gt;</MagneticButton>
+              <MagneticButton variant="ghost" href="/new">Validate an Idea &gt;</MagneticButton>
             </div>
           </div>
         </div>
@@ -115,6 +122,13 @@ export default function LaunchCodeHubPage() {
           })}
         </div>
       </section>
+
+      <FaqSection
+        eyebrow="LaunchCode FAQ"
+        heading="Everything you need to know about LaunchCode."
+        subheading="How the founder operating system works, from your first idea to a fundable company."
+        items={launchCodeFaqs}
+      />
     </main>
   );
 }

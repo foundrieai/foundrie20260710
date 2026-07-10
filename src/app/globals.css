@@ -1536,6 +1536,88 @@ a.bg-primary,
   background: none !important;
 }
 
+/* Ghost CTA — a pixel match for the homepage hero "Get Started for Free" button:
+   an outlined pill whose molten gradient sweeps up on hover while the text
+   darkens. The magnetic cursor-follow is applied by MagneticGhostButton. */
+.foundrie-ghost-btn,
+.foundrie-molten-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-family: var(--font-clash), var(--font-display, sans-serif);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  will-change: transform;
+}
+.foundrie-ghost-btn > span,
+.foundrie-molten-btn > span {
+  position: relative;
+  z-index: 1;
+}
+.foundrie-ghost-btn::before,
+.foundrie-molten-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform: translateY(101%);
+  transition: transform 0.45s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.foundrie-ghost-btn:hover::before,
+.foundrie-molten-btn:hover::before {
+  transform: translateY(0);
+}
+
+/* Ghost CTA — outlined pill; the molten gradient sweeps up on hover while the
+   text darkens. Matches the homepage hero "Get Started for Free" button. */
+.foundrie-ghost-btn {
+  border: 1px solid rgba(244, 241, 246, 0.25);
+  background: transparent;
+  color: var(--foundrie-bone);
+  transition: color 0.45s cubic-bezier(0.76, 0, 0.24, 1), border-color 0.45s,
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.foundrie-ghost-btn::before {
+  background: var(--foundrie-molten);
+}
+.foundrie-ghost-btn:hover {
+  border-color: transparent;
+  color: #14030b;
+}
+
+/* Molten CTA — solid animated molten gradient; a white fill sweeps up on hover.
+   Matches the homepage hero "Explore the Suites" button. */
+.foundrie-molten-btn {
+  border: 0;
+  color: #14030b;
+  background: var(--foundrie-molten);
+  background-size: 220% 100%;
+  animation: moltenShift 5s ease infinite;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.foundrie-molten-btn::before {
+  background: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foundrie-ghost-btn {
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .foundrie-molten-btn {
+    animation: none;
+    transition: none;
+  }
+}
+
 .border-input,
 input,
 textarea,
@@ -1635,13 +1717,23 @@ footer {
   -webkit-text-stroke: 1px rgba(244, 241, 246, 0.14);
   transition: opacity 0.4s;
   cursor: default;
+  will-change: transform;
 }
 
-.foundrie-footer-word:hover {
+.foundrie-footer-word:hover .wf {
   -webkit-text-stroke: 1px transparent;
   background: var(--foundrie-molten);
   -webkit-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.foundrie-footer-word:hover .wa {
+  -webkit-text-stroke: 1px transparent;
+  background: linear-gradient(180deg, #ffffff 0%, #c9c9cf 55%, #7e7e88 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .foundrie-newsletter {
@@ -1649,7 +1741,6 @@ footer {
   max-width: 540px;
 }
 
-.foundrie-footer-kicker,
 .foundrie-footer-cols h4 {
   display: block;
   font-family: var(--font-clash), var(--font-display, sans-serif);
@@ -1660,8 +1751,20 @@ footer {
   color: var(--foundrie-smoke);
 }
 
+/* Newsletter kicker — molten gradient text, matching the homepage footer. */
 .foundrie-footer-kicker {
+  display: block;
   margin-bottom: 16px;
+  font-family: var(--font-clash), var(--font-display, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  background: var(--foundrie-molten);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .foundrie-newsletter-row {
@@ -1705,17 +1808,23 @@ footer {
 }
 
 .foundrie-footer-logo {
-  height: 46px;
+  height: 64px;
   width: auto;
-  max-width: 280px;
+  max-width: 360px;
   object-fit: contain;
   margin-bottom: 16px;
 }
 
-.foundrie-footer-grid p {
+.foundrie-footer-grid p,
+.foundrie-footer-tagline {
   color: var(--foundrie-smoke);
   font-size: 14px;
   max-width: 280px;
+}
+
+.foundrie-footer-tagline {
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .foundrie-footer-cols {
@@ -2075,6 +2184,26 @@ button.bg-primary,
 .molten-animate {
   background-size: 220% 100% !important;
   animation: moltenShift 5s ease infinite;
+}
+
+/* Header "Sign In" — animated molten gradient text, distinct from
+   the standard nav links. Mirrors the static homepage nav treatment. */
+.nav-signin-gradient {
+  background: linear-gradient(90deg, #ffc400, #ff7a00, #ff3000, #ff0055, #e600c9);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: moltenShift 5s ease infinite;
+  transition: filter 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.nav-signin-gradient:hover {
+  filter: brightness(1.18) saturate(1.1);
+  transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-signin-gradient { animation: none; }
 }
 
 /* BrandForge molten buttons use var(--foundrie-molten). */

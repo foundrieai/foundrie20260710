@@ -62,6 +62,12 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Help Desk reports / support tickets. Anyone may submit; only admins may read.
+    match /supportTickets/{ticketId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
     // Inquiries sent to a founder about a promoted idea. Anyone may send; the
     // idea's owner (or an admin) may read them.
     match /ideaInquiries/{inquiryId} {

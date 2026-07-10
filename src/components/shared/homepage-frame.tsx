@@ -23,6 +23,28 @@ export function HomepageFrame() {
     );
   }, []);
 
+  // Scroll the parent window to a section that lives inside the iframe, so nav
+  // links like /#platform land on the right part of the homepage.
+  const scrollToHash = useCallback((smooth = true) => {
+    const frame = iframeRef.current;
+    const doc = frame?.contentDocument;
+    if (!frame || !doc) return;
+    const id = window.location.hash.replace(/^#/, '');
+    if (!id || id === 'top') return;
+    const el = doc.getElementById(id);
+    if (!el) return;
+    // Use getBoundingClientRect so this works for nested anchors (e.g. #career
+    // inside the diptych), not just top-level sections. The iframe never scrolls
+    // internally, so the element rect top equals its offset within the content.
+    const navOffset = 88; // clear the sticky app header
+    const target =
+      window.scrollY + frame.getBoundingClientRect().top + el.getBoundingClientRect().top - navOffset;
+    window.scrollTo({
+      top: Math.max(0, target),
+      behavior: smooth ? 'smooth' : 'auto',
+    });
+  }, []);
+
   const syncHeight = useCallback(() => {
     const frame = iframeRef.current;
     const doc = frame?.contentDocument;
@@ -50,20 +72,50 @@ export function HomepageFrame() {
 
     frame.contentWindow?.scrollTo(0, 0);
     syncHeight();
+    const hasHash = window.location.hash && window.location.hash !== '#top';
     window.setTimeout(() => {
       frame.contentWindow?.scrollTo(0, 0);
       syncHeight();
+      if (hasHash) scrollToHash(false);
     }, 500);
     window.setTimeout(() => {
-      frame.contentWindow?.scrollTo(0, 0);
       syncHeight();
+      if (hasHash) scrollToHash();
     }, 1500);
     window.requestAnimationFrame(postScrollState);
-  }, [postScrollState, syncHeight]);
+  }, [postScrollState, syncHeight, scrollToHash]);
 
   useEffect(() => {
     return () => resizeObserverRef.current?.disconnect();
   }, []);
+
+  // React to in-app hash changes (e.g. clicking "Company" while already on /).
+  // Next.js <Link> updates the hash via history.pushState, which fires no
+  // hashchange event, so we also wrap pushState/replaceState. Defer slightly so
+  // the scroll runs after Next has finished its own navigation/scroll handling.
+  useEffect(() => {
+    const onNav = () => window.setTimeout(() => scrollToHash(), 50);
+    window.addEventListener('hashchange', onNav);
+    window.addEventListener('popstate', onNav);
+
+    const origPush = window.history.pushState;
+    const origReplace = window.history.replaceState;
+    window.history.pushState = function (this: History, ...args: Parameters<History['pushState']>) {
+      origPush.apply(this, args);
+      onNav();
+    };
+    window.history.replaceState = function (this: History, ...args: Parameters<History['replaceState']>) {
+      origReplace.apply(this, args);
+      onNav();
+    };
+
+    return () => {
+      window.removeEventListener('hashchange', onNav);
+      window.removeEventListener('popstate', onNav);
+      window.history.pushState = origPush;
+      window.history.replaceState = origReplace;
+    };
+  }, [scrollToHash]);
 
   useEffect(() => {
     const handleScrollOrResize = () => postScrollState();

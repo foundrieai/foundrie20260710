@@ -11,8 +11,8 @@ import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 
 const marketingLinks = [
-  { href: '/company', label: 'Company' },
-  { href: '/career', label: 'Career' },
+  { href: '/#platform', label: 'Company' },
+  { href: '/#career', label: 'Career' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/resources', label: 'Resources' },
   { href: '/about', label: 'About' },
@@ -57,8 +57,8 @@ export const AppHeader = () => {
   }, []);
 
   const authenticatedLinks = [
-    { href: '/company', label: 'Company' },
-    { href: '/career', label: 'Career' },
+    { href: '/#platform', label: 'Company' },
+    { href: '/#career', label: 'Career' },
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/company/launchcode', label: 'LaunchCode' },
     { href: '/ideation', label: 'Ideation' },
@@ -87,7 +87,7 @@ export const AppHeader = () => {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "whitespace-nowrap transition-colors hover:text-white",
+                  "inline-block whitespace-nowrap transition-all duration-300 hover:-translate-y-0.5 hover:text-white",
                   pathname === link.href && "text-[#ff7a00]"
                 )}
               >
@@ -110,7 +110,7 @@ export const AppHeader = () => {
         <div className="flex shrink-0 items-center space-x-4">
           {isMarketingRoute ? (
             <div className="hidden min-[1120px]:flex items-center space-x-4">
-              <Link href="/login" className="text-xs font-bold uppercase tracking-[0.12em] text-white/85 transition-colors hover:text-white">
+              <Link href="/login" className="nav-signin-gradient text-xs font-bold uppercase tracking-[0.12em]">
                 Sign In
               </Link>
               <Button asChild className="h-11 whitespace-nowrap rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-6 text-xs font-bold uppercase tracking-[0.12em] text-[#14030b] shadow-[0_0_28px_rgba(255,48,0,0.34)] hover:opacity-95 hover:shadow-[0_0_44px_rgba(255,48,0,0.44)]">

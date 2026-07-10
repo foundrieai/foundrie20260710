@@ -1,7 +1,5 @@
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { ToolCard } from '@/components/platform/tool-card';
+import { MagneticButton } from '@/components/shared/magnetic-button';
 import type { PlatformSuite } from '@/lib/platform';
 
 export function SuitePage({ suite }: { suite: PlatformSuite }) {
@@ -27,27 +25,13 @@ export function SuitePage({ suite }: { suite: PlatformSuite }) {
               <div className="mt-8 flex flex-wrap gap-3">
                 {suite.name === 'Company' ? (
                   <>
-                    <Button asChild className="rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-7 font-bold text-black hover:opacity-90">
-                      <Link href="/company/launchcode">
-                        Enter LaunchCode
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-full border-white/20 bg-black/20 px-7 text-white hover:bg-white/10">
-                      <Link href="/new">Validate an idea</Link>
-                    </Button>
+                    <MagneticButton variant="molten" href="/company/launchcode">Enter LaunchCode &gt;</MagneticButton>
+                    <MagneticButton variant="ghost" href="/new">Validate an Idea &gt;</MagneticButton>
                   </>
                 ) : (
                   <>
-                    <Button asChild className="rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-7 font-bold text-black hover:opacity-90">
-                      <Link href="/career/resumait">
-                        Enter Resumait
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-full border-white/20 bg-black/20 px-7 text-white hover:bg-white/10">
-                      <Link href="/brandforge">Enter BrandForge</Link>
-                    </Button>
+                    <MagneticButton variant="molten" href="/career/resumait">Enter Resumait &gt;</MagneticButton>
+                    <MagneticButton variant="ghost" href="/brandforge">Enter BrandForge &gt;</MagneticButton>
                   </>
                 )}
               </div>

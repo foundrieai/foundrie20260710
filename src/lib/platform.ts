@@ -67,7 +67,7 @@ export const brandForgeTool: PlatformTool = {
 export const platformSuites: PlatformSuite[] = [
   {
     name: 'Company',
-    href: '/company',
+    href: '/#platform',
     kicker: 'Company Suite',
     headline: 'Build the company from first spark to funded scale.',
     description:
@@ -77,7 +77,7 @@ export const platformSuites: PlatformSuite[] = [
   },
   {
     name: 'Career',
-    href: '/career',
+    href: '/#career',
     kicker: 'Career Suite',
     headline: 'Engineer the career and reputation behind the work.',
     description:
@@ -106,7 +106,7 @@ export const platformTools: PlatformTool[] = [
     suite: 'Company',
     status: 'placeholder',
     label: 'Cohort layer',
-    href: '/company',
+    href: '/#platform',
     cta: 'View Company Suite',
     description:
       'A future operating layer for accelerators, incubators, universities, and venture programs running entire founder cohorts.',

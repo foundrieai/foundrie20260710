@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { Target, Eye } from 'lucide-react';
+import { MagneticButton } from '@/components/shared/magnetic-button';
 
 const MOLTEN = 'linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)';
 
@@ -117,19 +117,8 @@ export default function AboutPage() {
               Start Forging Your Own Future.
             </h2>
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href="/signup"
-                className="molten-animate inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full px-7 text-xs font-bold uppercase tracking-[0.12em] text-[#14030b] transition hover:opacity-95"
-                style={{ backgroundImage: MOLTEN }}
-              >
-                Get Started for Free &gt;
-              </Link>
-              <Link
-                href="/connect"
-                className="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-7 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:border-[#ff7a00]/60 hover:bg-white/10"
-              >
-                Talk to Us &gt;
-              </Link>
+              <MagneticButton variant="molten" href="/signup">Get Started for Free &gt;</MagneticButton>
+              <MagneticButton variant="ghost" href="/connect">Talk to Us &gt;</MagneticButton>
             </div>
           </div>
         </section>

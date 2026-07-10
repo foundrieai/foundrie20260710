@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ReportCard } from '@/components/dashboard/report-card';
+import { MagneticButton } from '@/components/shared/magnetic-button';
 import { BarChart, CheckCircle2, Lightbulb, Search, ListFilter, Loader2, ChevronDown, Star, Shield, Users, Database, ArrowRight, Wrench, Activity, Eye, LayoutGrid } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -227,6 +228,8 @@ function DashboardPageInner() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewAsUser, setViewAsUser] = useState(false);
   const [brandForgeActive, setBrandForgeActive] = useState(false);
+  const IDEAS_PER_PAGE = 6;
+  const [visibleCount, setVisibleCount] = useState(IDEAS_PER_PAGE);
 
   const isAdmin = !!user && (adminEmails.has(user.email || '') || (user as any)?.admin === true);
   const effectiveAdmin = isAdmin && !viewAsUser;
@@ -308,6 +311,14 @@ function DashboardPageInner() {
       }
     });
   }, [reports, searchQuery, sortBy]);
+
+  // Collapse back to the first page whenever the filtered/sorted set changes.
+  useEffect(() => {
+    setVisibleCount(IDEAS_PER_PAGE);
+  }, [searchQuery, sortBy]);
+
+  const visibleReports = processedReports.slice(0, visibleCount);
+  const hasMoreReports = processedReports.length > visibleCount;
 
   const getSortLabel = () => {
     switch (sortBy) {
@@ -395,11 +406,11 @@ function DashboardPageInner() {
               <p className="text-muted-foreground">Journey Entry</p>
               <p className="text-xl font-bold font-headline text-primary">Start with Ideation or Validation</p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button asChild className="shadow-button-primary flex-1">
+            <div className="flex flex-col gap-3">
+              <Button asChild className="shadow-button-primary w-full">
                 <Link href="/ideation"><Lightbulb className="mr-2 h-4 w-4" /> Ideation</Link>
               </Button>
-              <Button asChild variant="outline" className="flex-1">
+              <Button asChild variant="outline" className="w-full">
                 <Link href="/new"><CheckCircle2 className="mr-2 h-4 w-4" /> Validation</Link>
               </Button>
             </div>
@@ -444,11 +455,23 @@ function DashboardPageInner() {
         )}
 
         {!isReportsLoading && processedReports.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {processedReports.map(report => (
-              <ReportCard key={report.id} report={report} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {visibleReports.map(report => (
+                <ReportCard key={report.id} report={report} />
+              ))}
+            </div>
+            {hasMoreReports && (
+              <div className="mt-10 flex justify-center">
+                <MagneticButton
+                  variant="ghost"
+                  onClick={() => setVisibleCount((c) => c + IDEAS_PER_PAGE)}
+                >
+                  Show More Ideas &gt;
+                </MagneticButton>
+              </div>
+            )}
+          </>
         ) : (
           !isReportsLoading && (
             <Card className="glass-card text-center py-20 px-6">
@@ -460,12 +483,8 @@ function DashboardPageInner() {
               </p>
               {!searchQuery && (
                 <div className="flex flex-col sm:flex-row justify-center gap-3">
-                  <Button asChild className="shadow-button-primary hover:shadow-button-primary-hover">
-                    <Link href="/ideation"><Lightbulb className="mr-2 h-4 w-4" /> Help Me Find an Idea</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link href="/new"><CheckCircle2 className="mr-2 h-4 w-4" /> Validate My Idea</Link>
-                  </Button>
+                  <MagneticButton variant="molten" href="/ideation">Help Me Find an Idea &gt;</MagneticButton>
+                  <MagneticButton variant="ghost" href="/new">Validate My Idea &gt;</MagneticButton>
                 </div>
               )}
             </Card>
