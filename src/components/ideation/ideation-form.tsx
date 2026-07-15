@@ -40,6 +40,52 @@ const createEmptyFounder = (): FounderData => ({
   q5: '',
 });
 
+// Minimum thresholds for input to count as "sufficient" to build a real profile.
+const MIN_RESUME_CHARS = 80;
+const MIN_QUESTIONNAIRE_CHARS = 40;
+const MIN_DISTINCT_CHARS = 6; // rejects filler like "xxxx xxxx xxxx"
+
+const normalize = (text: string) => (text || '').replace(/\s+/g, ' ').trim();
+const distinctAlnum = (text: string) => new Set(text.toLowerCase().replace(/[^a-z0-9]/g, '')).size;
+const looksMeaningful = (text: string, minLen: number) =>
+  normalize(text).length >= minLen && distinctAlnum(text) >= MIN_DISTINCT_CHARS;
+
+/**
+ * Confirms each founder has genuinely sufficient input (a readable resume/LinkedIn
+ * file, or a fully and meaningfully completed questionnaire). Returns the first
+ * problem found so the UI can notify the user and refuse to generate ideas.
+ */
+function validateFounders(founders: FounderData[]): { ok: boolean; message?: string } {
+  if (!founders.length) {
+    return { ok: false, message: 'Add at least one founder before generating ideas.' };
+  }
+  for (let i = 0; i < founders.length; i++) {
+    const f = founders[i];
+    const who = founders.length > 1 ? `Founder ${i + 1}` : 'This founder';
+
+    if (f.activeTab === 'resume' || f.activeTab === 'linkedin') {
+      const source = f.activeTab === 'resume' ? 'resume' : 'LinkedIn PDF';
+      const text = normalize(f.fileText);
+      if (!text) {
+        return { ok: false, message: `${who}: upload a ${source}, or switch to the Quick Questionnaire, before generating ideas.` };
+      }
+      if (!looksMeaningful(text, MIN_RESUME_CHARS)) {
+        return { ok: false, message: `${who}: the ${source} does not contain enough readable text to build a founder profile. Upload a text-based file or complete the questionnaire instead.` };
+      }
+    } else {
+      const answers = [f.q1, f.q2, f.q3, f.q4, f.q5].map((a) => normalize(a));
+      if (answers.some((a) => !a)) {
+        return { ok: false, message: `${who}: answer all five questionnaire questions (or upload a resume / LinkedIn PDF) before generating ideas.` };
+      }
+      const combined = answers.join(' ');
+      if (!looksMeaningful(combined, MIN_QUESTIONNAIRE_CHARS)) {
+        return { ok: false, message: `${who}: the questionnaire answers do not contain enough real detail to build a founder profile. Please describe your actual skills, industries, and background.` };
+      }
+    }
+  }
+  return { ok: true };
+}
+
 export function IdeationForm() {
   const fieldUid = useId();
   const [founders, setFounders] = useState<FounderData[]>([createEmptyFounder()]);
@@ -54,16 +100,30 @@ export function IdeationForm() {
   const [results, setResults] = useState<Idea[]>([]);
   const [targetBusinessModel, setTargetBusinessModel] = useState('B2B');
 
+  // Any change to founder input must discard a previously extracted profile so a
+  // stale/cached profile can never drive idea generation. Guarded so it is a
+  // no-op during normal editing (when there is nothing cached yet).
+  const invalidateProfile = () => {
+    if (founderProfile !== null || results.length > 0 || stage !== 'input') {
+      setFounderProfile(null);
+      setResults([]);
+      setStage('input');
+    }
+  };
+
   const handleFounderChange = (id: string, field: keyof FounderData, value: string) => {
     setFounders(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f));
+    invalidateProfile();
   };
 
   const addFounder = () => {
     setFounders(prev => [...prev, createEmptyFounder()]);
+    invalidateProfile();
   };
 
   const removeFounder = (id: string) => {
     setFounders(prev => prev.filter(f => f.id !== id));
+    invalidateProfile();
   };
 
   const handleReset = () => {
@@ -98,6 +158,18 @@ export function IdeationForm() {
   };
 
   const handleExtractProfile = async () => {
+    // Never proceed without genuinely sufficient input. Notify and stop.
+    const validation = validateFounders(founders);
+    if (!validation.ok) {
+      setFounderProfile(null);
+      toast({
+        variant: 'destructive',
+        title: 'Not enough information to proceed',
+        description: validation.message,
+      });
+      return;
+    }
+
     setIsExtracting(true);
 
     try {
@@ -117,14 +189,8 @@ export function IdeationForm() {
         const f = founders[i];
         let profileText = '';
         if (f.activeTab === 'resume' || f.activeTab === 'linkedin') {
-          if (!f.fileText) {
-            throw new Error(`Please upload a file for Founder ${i + 1} or switch their tab.`);
-          }
           profileText = f.fileText;
         } else {
-          if (!f.q1 || !f.q2 || !f.q3 || !f.q4 || !f.q5) {
-             throw new Error(`Please fill out all questionnaire fields for Founder ${i + 1}.`);
-          }
           profileText = `
             What comes easily: ${f.q1}
             Industries understood: ${f.q2}
@@ -162,8 +228,20 @@ export function IdeationForm() {
   };
 
   const handleGenerateIdeas = async (append = false) => {
-    if (!founderProfile) return;
-    
+    // Re-check the current input still qualifies, and require a profile that was
+    // freshly extracted from it — no cached profile may ever drive generation.
+    const validation = validateFounders(founders);
+    if (!validation.ok || !founderProfile) {
+      setFounderProfile(null);
+      setStage('input');
+      toast({
+        variant: 'destructive',
+        title: 'Not enough information to proceed',
+        description: validation.message || 'Add a resume, LinkedIn profile, or a completed questionnaire, then extract competencies before generating ideas.',
+      });
+      return;
+    }
+
     setIsGenerating(true);
     if (!append) {
       setResults([]);

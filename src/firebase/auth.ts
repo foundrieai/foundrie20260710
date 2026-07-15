@@ -23,23 +23,36 @@ import { setDocumentNonBlocking } from './non-blocking-updates';
 
 const provider = new GoogleAuthProvider();
 
-// Helper to translate common Firebase Auth errors to user-friendly messages
+// Helper to translate common Firebase Auth errors to user-friendly messages.
+// The Firebase error code is appended so failures can be diagnosed precisely.
 const getAuthErrorMessage = (error: any) => {
-  switch (error.code) {
+  const code = error?.code as string | undefined;
+  const withCode = (msg: string) => (code ? `${msg} (${code})` : msg);
+  switch (code) {
     case 'auth/operation-not-allowed':
-      return 'The sign-in provider is not enabled in the Firebase Console. Please enable "Email/Password" and "Google" in the Authentication tab.';
+      return withCode('This sign-in method is not enabled in Firebase (Authentication → Sign-in method). Enable Email/Password and Google.');
     case 'auth/user-not-found':
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
-      return 'Invalid email or password.';
+      return withCode('Invalid email or password.');
     case 'auth/email-already-in-use':
-      return 'An account with this email already exists.';
+      return withCode('An account with this email already exists.');
     case 'auth/weak-password':
-      return 'Password should be at least 6 characters.';
+      return withCode('Password should be at least 6 characters.');
     case 'auth/popup-closed-by-user':
-      return 'Sign-in popup closed before completion.';
+      return withCode('The sign-in popup was closed before completing.');
+    case 'auth/popup-blocked':
+      return withCode('Your browser blocked the sign-in popup. Allow popups for this site and try again.');
+    case 'auth/cancelled-popup-request':
+      return withCode('Another sign-in attempt is already in progress.');
+    case 'auth/unauthorized-domain':
+      return withCode('This domain is not authorized for sign-in. Add it under Firebase Authentication → Settings → Authorized domains.');
+    case 'auth/network-request-failed':
+      return withCode('Could not reach the sign-in service. Check your connection and try again.');
+    case 'auth/too-many-requests':
+      return withCode('Too many attempts. Please wait a moment and try again.');
     default:
-      return error.message || 'An unexpected error occurred.';
+      return withCode(error?.message || 'An unexpected error occurred.');
   }
 };
 

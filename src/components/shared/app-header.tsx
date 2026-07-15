@@ -108,7 +108,16 @@ export const AppHeader = () => {
         )}
 
         <div className="flex shrink-0 items-center space-x-4">
-          {isMarketingRoute ? (
+          {isUserLoading ? null : user ? (
+            <div className="flex items-center gap-3">
+              {isMarketingRoute && (
+                <Button asChild className="hidden min-[1120px]:inline-flex h-11 whitespace-nowrap rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-6 text-xs font-bold uppercase tracking-[0.12em] text-[#14030b] shadow-[0_0_28px_rgba(255,48,0,0.34)] hover:opacity-95 hover:shadow-[0_0_44px_rgba(255,48,0,0.44)]">
+                  <Link href="/dashboard">Dashboard &gt;</Link>
+                </Button>
+              )}
+              <UserNav />
+            </div>
+          ) : (
             <div className="hidden min-[1120px]:flex items-center space-x-4">
               <Link href="/login" className="nav-signin-gradient text-xs font-bold uppercase tracking-[0.12em]">
                 Sign In
@@ -117,17 +126,6 @@ export const AppHeader = () => {
                 <Link href="/signup">Get Started for Free &gt;</Link>
               </Button>
             </div>
-          ) : !isUserLoading && !user ? (
-            <div className="hidden min-[1120px]:flex items-center space-x-4">
-              <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                Sign In
-              </Link>
-              <Button asChild className="rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-5 font-bold text-[#14030b] hover:opacity-90">
-                <Link href="/signup">Get Started &gt;</Link>
-              </Button>
-            </div>
-          ) : (
-            <UserNav />
           )}
           <button
             type="button"
@@ -135,7 +133,7 @@ export const AppHeader = () => {
             aria-expanded={isMenuOpen}
             className={cn(
               'inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-colors hover:border-[#ff7a00]/60 hover:bg-white/10 min-[1120px]:hidden',
-              !isMarketingRoute && !(!isUserLoading && !user) && !user && 'hidden'
+              !isMarketingRoute && !user && 'hidden'
             )}
             onClick={() => setIsMenuOpen((open) => !open)}
           >
@@ -164,7 +162,7 @@ export const AppHeader = () => {
               </Link>
             ))}
           </nav>
-          {(isMarketingRoute || (!isUserLoading && !user)) && (
+          {!isUserLoading && !user ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <Link href="/login" className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 text-xs font-bold uppercase tracking-[0.12em] text-white/85">
                 Sign In
@@ -173,7 +171,13 @@ export const AppHeader = () => {
                 <Link href="/signup">Get Started for Free &gt;</Link>
               </Button>
             </div>
-          )}
+          ) : user && isMarketingRoute ? (
+            <div className="mt-5">
+              <Button asChild className="h-11 w-full rounded-full bg-[linear-gradient(90deg,#ffc400,#ff7a00,#ff3000,#ff0055,#e600c9)] px-6 text-xs font-bold uppercase tracking-[0.12em] text-[#14030b]">
+                <Link href="/dashboard">Go to Dashboard &gt;</Link>
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
     </header>

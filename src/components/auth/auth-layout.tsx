@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Logo } from '@/components/shared/logo';
 import { GlowContainer } from '@/components/shared/glow-container';
+import { MoltenCanvas } from '@/components/shared/molten-canvas';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -9,15 +10,18 @@ interface AuthLayoutProps {
   illustrationUrl?: string;
   illustrationHint?: string;
   videoUrl?: string;
+  /** Use the homepage hero's WebGL molten animation instead of a video/image. */
+  animated?: boolean;
 }
 
-export function AuthLayout({ 
-  children, 
-  title, 
-  description, 
-  illustrationUrl, 
+export function AuthLayout({
+  children,
+  title,
+  description,
+  illustrationUrl,
   illustrationHint,
-  videoUrl 
+  videoUrl,
+  animated,
 }: AuthLayoutProps) {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -36,7 +40,9 @@ export function AuthLayout({
         </GlowContainer>
       </div>
       <div className="hidden lg:block relative overflow-hidden bg-black">
-        {videoUrl ? (
+        {animated ? (
+          <MoltenCanvas className="absolute inset-0 h-full w-full" />
+        ) : videoUrl ? (
           <video
             autoPlay
             loop
@@ -56,8 +62,15 @@ export function AuthLayout({
             className="opacity-70"
           />
         ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
-        <div className="absolute inset-0 bg-black/40" />
+        {/* Keep a light edge blend for legibility; the animation stays vibrant. */}
+        <div
+          className={
+            animated
+              ? 'absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-transparent'
+              : 'absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60'
+          }
+        />
+        {!animated && <div className="absolute inset-0 bg-black/40" />}
       </div>
     </div>
   );

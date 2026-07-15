@@ -16,30 +16,39 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { CheckCircle2, CreditCard, Lightbulb, LogOut, Settings, User as UserIcon, Shield, LayoutDashboard } from "lucide-react"
+import { CreditCard, LogOut, User as UserIcon, Shield } from "lucide-react"
 import { Skeleton } from "../ui/skeleton";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { useSignOut } from "@/firebase/auth";
+import { doc } from "firebase/firestore";
+import type { User as UserProfileData } from "@/lib/types";
 import { useState, useEffect } from "react";
 
+/**
+ * Account menu. Intentionally identity/account-only (profile, billing, sign out)
+ * so it does not duplicate the product navigation in the top bar.
+ */
 export function UserNav() {
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const handleSignOut = useSignOut();
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const userProfileRef = useMemoFirebase(
+    () => (user ? doc(firestore, "users", user.uid) : null),
+    [firestore, user]
+  );
+  const { data: userProfile } = useDoc<UserProfileData>(userProfileRef);
+
   useEffect(() => {
-      if (user) {
-          user.getIdTokenResult(true).then(idTokenResult => {
-              const claims = idTokenResult.claims;
-              if (claims.admin === true || user.email === 'hello@thesiliconhill.com') {
-                  setIsAdmin(true);
-              } else {
-                  setIsAdmin(false);
-              }
-          });
-      } else {
-        setIsAdmin(false);
-      }
+    if (user) {
+      user.getIdTokenResult(true).then((idTokenResult) => {
+        const claims = idTokenResult.claims;
+        setIsAdmin(claims.admin === true || user.email === 'hello@thesiliconhill.com');
+      });
+    } else {
+      setIsAdmin(false);
+    }
   }, [user]);
 
   if (isUserLoading) {
@@ -50,74 +59,56 @@ export function UserNav() {
     return null;
   }
 
+  const displayName = userProfile?.displayName || user.displayName || 'Founder';
+  const email = userProfile?.email || user.email || '';
+  const photoURL = userProfile?.photoURL || user.photoURL || `https://avatar.vercel.sh/${user.uid}.png`;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.photoURL || `https://avatar.vercel.sh/${user.uid}.png`} alt={user.displayName || 'User avatar'} data-ai-hint="person" />
-            <AvatarFallback>{user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+            <AvatarImage src={photoURL} alt={displayName} data-ai-hint="person" />
+            <AvatarFallback>{(displayName || email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-60" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.displayName || 'Founder'}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email || 'founder@example.com'}
-            </p>
+            <p className="text-sm font-medium leading-none">{displayName}</p>
+            <p className="text-xs leading-none text-muted-foreground">{email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {isAdmin && (
-            <DropdownMenuItem asChild>
-                <Link href="/admin">
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Admin</span>
-                </Link>
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/ideation">
-              <Lightbulb className="mr-2 h-4 w-4" />
-              <span>Ideation</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/new">
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              <span>Validation</span>
-            </Link>
-          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/profile">
               <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>Profile &amp; account</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCard className="mr-2 h-4 w-4" />
-            <span>Billing</span>
+          <DropdownMenuItem asChild>
+            <Link href="/pricing">
+              <CreditCard className="mr-2 h-4 w-4" />
+              <span>Billing &amp; plans</span>
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-          </DropdownMenuItem>
+          {isAdmin && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Admin console</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
