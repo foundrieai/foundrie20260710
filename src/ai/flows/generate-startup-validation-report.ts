@@ -252,7 +252,8 @@ export async function continueReportSection(input: ContinueSectionInput): Promis
 // 4. Flow for Final Scores
 const ScoringInputSchema = z.object({
   fullReportContent: z.string(),
-  userInput: z.string().optional(),
+  userInput: z.string().optional().describe("The founder's own words. This, not the polished analysis, is what is being scored."),
+  founderContext: z.string().optional().describe('The real founding team, where supplied.'),
 });
 const ScoresSchema = z.object({
   marketPotential: z.object({score: z.number().min(0).max(10), rationale: z.string()}),
@@ -265,8 +266,28 @@ export type ReportScores = z.infer<typeof ScoresSchema>;
 const scoringPrompt = ai.definePrompt({
     name: 'generateScoresPrompt',
     model: MODEL_ID,
-    system: `You are a Senior VC Analyst practicing "Optimistic Realism". Score based on the opportunity.
-    STRICT WHITELABEL MANDATE: ZERO mentions of "IDEAIT", "IDEAMAIT", or "LAUNCHCODE" in rationales.`,
+    system: `You are a Senior VC Analyst scoring a venture at investment committee. You are respected because your scores discriminate: a founder can tell from your number alone whether they have something real. Inflated scores are a failure of your job, because they cost founders years pursuing ideas you should have flagged.
+
+    STRICT WHITELABEL MANDATE: ZERO mentions of "IDEAIT", "IDEAMAIT", or "LAUNCHCODE" in rationales.
+
+    **CALIBRATION (binding):**
+    - 9.0-10.0: Exceptional. Rare. Reserved for a genuinely category-defining opportunity with evidence behind it. Most portfolios contain none of these.
+    - 7.0-8.9: Strong. A clear, differentiated opportunity with real evidence.
+    - 5.0-6.9: Median. THE TYPICAL SUBMISSION LANDS HERE. A plausible idea whose advantage or evidence is unproven.
+    - 3.0-4.9: Weak. A material flaw in the market, the moat, the economics, or the feasibility.
+    - 0.0-2.9: Fatally flawed. No viable path as described.
+
+    **ANTI-INFLATION RULES (binding):**
+    1. SCORE THE FOUNDER'S ACTUAL SUBMISSION, NOT THE ANALYSIS. The report you are given was written to extrapolate the idea to its most viable form. That polish is the analyst's work, not the founder's evidence, and it MUST NOT raise the score. Where the report asserts strength the founder's own input does not support, score the founder's input.
+    2. Absence of evidence is not evidence. Unproven demand, an unvalidated moat, or an untested assumption caps the affected dimension at 6.9 regardless of how compelling the concept reads.
+    3. A thin or vague submission cannot score above 6.0 on dimensions it fails to address. You cannot infer strength the founder never demonstrated.
+    4. Do not cluster. The four dimensions measure different things and should rarely be within 0.5 of each other. If they are, you have not discriminated.
+    5. Never round toward optimism. When torn between two scores, take the lower and explain the gap that would close it.
+
+    **RATIONALE REQUIREMENTS:**
+    - Every rationale must name the SPECIFIC weakness or gap that held the score down, in plain language.
+    - Every rationale must then name the CONCRETE, achievable action that would raise the score, and what it would raise it to.
+    - Be direct about problems and constructive about the path. Never praise to cushion a low score, and never soften the number itself. A founder reading a 4.5 should understand exactly why and exactly what to do next.`,
     input: { schema: ScoringInputSchema },
     output: { schema: ScoresSchema },
     config: {
@@ -277,12 +298,28 @@ const scoringPrompt = ai.definePrompt({
         { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
       ],
     },
-    prompt: `Analyze the full report and provide weighted scores (7.5 - 9.2 for strong ideas). 
-    
-    Report:
+    prompt: `Score this venture against the binding calibration and anti-inflation rules.
+{{#if userInput}}
+
+    **THE FOUNDER'S ACTUAL SUBMISSION — THIS IS WHAT YOU ARE SCORING:**
+    """
+    {{{userInput}}}
+    """
+{{/if}}
+{{#if founderContext}}
+
+    **FOUNDING TEAM:**
+    {{{founderContext}}}
+{{/if}}
+
+    **THE ANALYST'S REPORT — CONTEXT ONLY.** This was written to extrapolate the idea to its most viable form. Use it to understand the opportunity and the market. Its optimism is NOT evidence and MUST NOT raise the score{{#if userInput}}; where it outruns the founder's submission above, score the submission{{/if}}:
+    """
     {{{fullReportContent}}}
-    
-    Return ONLY JSON. Ensure rationales attribute findings to neutral investment frameworks.`
+    """
+
+    Before returning, verify each score against the calibration band and confirm you have not clustered the four dimensions. Remember that the median submission scores 5.0-6.9.
+
+    Return ONLY JSON. Each rationale must name the specific gap that held the score down and the concrete action that would raise it. Attribute findings to neutral investment frameworks.`
 });
 
 const generateScoresFlow = ai.defineFlow(
@@ -300,9 +337,14 @@ const generateScoresFlow = ai.defineFlow(
   }
 );
 
-export async function generateScores(fullReportContent: Report['content'], userInput?: string): Promise<ReportScores> {
-  return generateScoresFlow({ 
+export async function generateScores(
+  fullReportContent: Report['content'],
+  userInput?: string,
+  founderContext?: string
+): Promise<ReportScores> {
+  return generateScoresFlow({
     fullReportContent: JSON.stringify(fullReportContent),
-    userInput: userInput 
+    userInput,
+    founderContext,
   });
 }

@@ -398,7 +398,12 @@ export function ReportClientShell({ report: initialReport }: { report: Report })
     if (!reportRef || !canEdit) return null;
     setGeneratingSection('scores' as any);
     try {
-        const scores = await generateScores(fullReportContent);
+        // The founder's own words drive the score; the generated report is context only.
+        const scores = await generateScores(
+          fullReportContent,
+          report.description,
+          formatFounderContext(report.founderProfile)
+        );
         const scrubbedScores = {
           marketPotential: { score: scores.marketPotential.score, rationale: scrubInternalBranding(scores.marketPotential.rationale) },
           competitiveEdge: { score: scores.competitiveEdge.score, rationale: scrubInternalBranding(scores.competitiveEdge.rationale) },
