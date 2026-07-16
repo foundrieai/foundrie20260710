@@ -86,6 +86,22 @@ function validateFounders(founders: FounderData[]): { ok: boolean; message?: str
   return { ok: true };
 }
 
+function BulletList({ title, items }: { title: string; items: string[] }) {
+  if (!items?.length) return null;
+  return (
+    <div className="space-y-3">
+      <h3 className="font-semibold text-foreground border-b pb-2">{title}</h3>
+      <ul className="space-y-2">
+        {items.map((item, i) => (
+          <li key={i} className="text-sm flex items-start gap-2">
+            <span className="text-primary mt-1">•</span> <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function IdeationForm() {
   const fieldUid = useId();
   const [founders, setFounders] = useState<FounderData[]>([createEmptyFounder()]);
@@ -207,7 +223,10 @@ export function IdeationForm() {
         description: 'Analyzing inputs to build a core skills graph.',
       });
 
-      const profile = await extractFounderProfile({ profileText: combinedProfileText.trim() });
+      const profile = await extractFounderProfile({
+        profileText: combinedProfileText.trim(),
+        founderCount: founders.length,
+      });
       setFounderProfile(profile);
       setStage('configuring');
       
@@ -435,42 +454,66 @@ export function IdeationForm() {
                 <CheckCircle2 className="text-primary h-6 w-6" />
                 Founder Alignment Report
               </h2>
+              {founderProfile.founders.length > 1 && (
+                <p className="text-sm font-medium text-primary mt-2">
+                  Founding team of {founderProfile.founders.length}
+                </p>
+              )}
               <p className="text-muted-foreground mt-2">{founderProfile.summary}</p>
             </div>
-            
+
             <CardContent className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                   <h3 className="font-semibold text-foreground border-b pb-2">Core Skills</h3>
-                   <ul className="space-y-2">
-                     {founderProfile.coreSkills.map((skill, i) => (
-                       <li key={i} className="text-sm flex items-start gap-2">
-                         <span className="text-primary mt-1">•</span> <span>{skill}</span>
-                       </li>
-                     ))}
-                   </ul>
+              {/* Each founder is reported individually so no one is collapsed into the team view. */}
+              {founderProfile.founders.length > 1 && (
+                <div className="space-y-4">
+                  {founderProfile.founders.map((f, i) => (
+                    <div key={i} className="rounded-lg border border-border/50 bg-background/40 p-5 space-y-4">
+                      <div>
+                        <h3 className="text-lg font-semibold font-headline">
+                          {f.name?.trim() || f.label || `Founder ${i + 1}`}
+                        </h3>
+                        {f.name?.trim() && (
+                          <p className="text-xs text-muted-foreground">{f.label || `Founder ${i + 1}`}</p>
+                        )}
+                        <p className="text-sm text-muted-foreground mt-2">{f.summary}</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <BulletList title="Core Skills" items={f.coreSkills} />
+                        <BulletList title="Industry Expertise" items={f.industryExpertise} />
+                      </div>
+                      <BulletList title="Unfair Advantages" items={f.unfairAdvantages} />
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-3">
-                   <h3 className="font-semibold text-foreground border-b pb-2">Industry Expertise</h3>
-                   <ul className="space-y-2">
-                     {founderProfile.industryExpertise.map((exp, i) => (
-                       <li key={i} className="text-sm flex items-start gap-2">
-                         <span className="text-primary mt-1">•</span> <span>{exp}</span>
-                       </li>
-                     ))}
-                   </ul>
+              )}
+
+              <div
+                className={
+                  founderProfile.founders.length > 1
+                    ? 'space-y-6 pt-6 border-t-2 border-primary/20'
+                    : 'space-y-6'
+                }
+              >
+                {founderProfile.founders.length > 1 && (
+                  <h3 className="text-xl font-bold font-headline">Combined Team Profile</h3>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <BulletList title="Core Skills" items={founderProfile.coreSkills} />
+                  <BulletList title="Industry Expertise" items={founderProfile.industryExpertise} />
                 </div>
-              </div>
-              
-              <div className="space-y-3 pt-4 border-t border-border/50">
-                 <h3 className="font-semibold text-foreground border-b pb-2">Unfair Advantages / Unique Insights</h3>
-                 <ul className="space-y-2">
-                   {founderProfile.unfairAdvantages.map((adv, i) => (
-                     <li key={i} className="text-sm flex items-start gap-2">
-                       <span className="text-primary mt-1">•</span> <span>{adv}</span>
-                     </li>
-                   ))}
-                 </ul>
+                <div className="pt-4 border-t border-border/50">
+                  <BulletList title="Unfair Advantages / Unique Insights" items={founderProfile.unfairAdvantages} />
+                </div>
+                {founderProfile.complementarity?.length > 0 && (
+                  <div className="pt-4 border-t border-border/50">
+                    <BulletList title="How These Founders Reinforce Each Other" items={founderProfile.complementarity} />
+                  </div>
+                )}
+                {founderProfile.teamGaps?.length > 0 && (
+                  <div className="pt-4 border-t border-border/50">
+                    <BulletList title="Capability Gaps to Cover" items={founderProfile.teamGaps} />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
