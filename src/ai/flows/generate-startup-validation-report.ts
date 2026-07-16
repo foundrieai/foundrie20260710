@@ -91,6 +91,7 @@ const ReportSectionInputSchema = z.object({
   reportSoFar: z.string().optional().describe('JSON string of the report content generated so far.'),
   companyName: z.string().optional(),
   location: z.string().optional(),
+  founderContext: z.string().optional().describe('The real founding team, formatted for the prompt. Absent when the user never supplied founder material.'),
 });
 const ReportSectionOutputSchema = z.object({
   content: z.string().describe('The generated markdown content for the specified section.'),
@@ -125,7 +126,9 @@ const sectionGenerationPrompt = ai.definePrompt(
 
     **CRITICAL OPERATIONAL RULES:**
     1. THE POLISHER: Extrapolate the user's idea to its most viable, scalable form.
-    2. THE TEAM: If no specific founders are listed, architect the ideal strategic team structure (Founding DNA, critical hiring sequence, and board composition) required for this venture to scale.
+    2. THE TEAM:
+       - When a FOUNDING TEAM section is supplied below, it describes the REAL founders of this venture, drawn from their own resumes and profiles. You MUST ground the Team section in those actual people: address each founder individually, assess how their real skills, industry expertise, and unfair advantages fit THIS specific venture, name the concrete gaps the team does not cover, and give the resulting hiring sequence. Never ignore a supplied founder, and never replace real founders with a generic archetype. Where a founder's background materially strengthens or weakens the venture, say so plainly and let it inform the analysis in other sections too.
+       - Only when NO founding team is supplied may you architect the ideal strategic team structure (Founding DNA, critical hiring sequence, and board composition) required for this venture to scale.
     3. AUTHORITY: Provide hyperlinked citations to reliable online authorities.
     4. COMPLETION MARKER: Signal the end of output with [ANALYSIS_COMPLETE].`,
     input: { schema: ReportSectionInputSchema },
@@ -142,6 +145,11 @@ const sectionGenerationPrompt = ai.definePrompt(
     prompt: `Company: {{companyName}}
     Idea: "{{companyDescription}}"
     Section: **{{sectionToGenerate}}**.
+{{#if founderContext}}
+
+    **FOUNDING TEAM (the real founders of this venture — use these actual people, do not invent a team):**
+    {{{founderContext}}}
+{{/if}}
 
     Context from generated sections:
     {{{reportSoFar}}}
@@ -183,6 +191,7 @@ const ContinueSectionInputSchema = z.object({
   sectionToGenerate: z.string(),
   companyName: z.string().optional(),
   partialContent: z.string().describe('The content that was cut off.'),
+  founderContext: z.string().optional().describe('The real founding team, so a continuation does not lose them mid-section.'),
 });
 export type ContinueSectionInput = z.infer<typeof ContinueSectionInputSchema>;
 
@@ -204,6 +213,11 @@ const continueSectionPrompt = ai.definePrompt({
   },
   prompt: `Section: {{sectionToGenerate}}
   Company: {{companyName}}
+{{#if founderContext}}
+
+  **FOUNDING TEAM (the real founders — keep grounding the analysis in these actual people):**
+  {{{founderContext}}}
+{{/if}}
 
   Analysis so far ended here:
   """

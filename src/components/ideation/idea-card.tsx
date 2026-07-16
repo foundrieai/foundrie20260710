@@ -5,13 +5,17 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Idea } from '@/lib/types';
+import type { FounderProfile } from '@/ai/flows/generate-ideation-concepts';
+import { stashFounderProfile } from '@/lib/founder-context';
 import { Bookmark, Star } from 'lucide-react';
 
 interface IdeaCardProps {
   idea: Idea;
+  /** Carried into Validation so the report analyses the real founding team. */
+  founderProfile?: FounderProfile | null;
 }
 
-export function IdeaCard({ idea: initialIdea }: IdeaCardProps) {
+export function IdeaCard({ idea: initialIdea, founderProfile }: IdeaCardProps) {
   const router = useRouter();
   const [idea, setIdea] = useState(initialIdea);
 
@@ -20,6 +24,9 @@ export function IdeaCard({ idea: initialIdea }: IdeaCardProps) {
   };
 
   const handleValidate = () => {
+    // The profile is too large for a query string, so it travels in
+    // sessionStorage and the report picks it up on creation.
+    if (founderProfile) stashFounderProfile(founderProfile);
     const params = new URLSearchParams();
     params.set('companyName', idea.title);
     params.set('description', `${idea.tagline}\n\nProblem: ${idea.problem}\n\nSolution: ${idea.solution}`);

@@ -15,6 +15,7 @@ import {
     ReportScores, 
     generateNameAndTagline
 } from '@/ai/flows/generate-startup-validation-report';
+import { formatFounderContext } from '@/lib/founder-context';
 import { generateExecutiveSummary } from '@/ai/flows/generate-executive-summary';
 import { polishReportSection } from '@/ai/flows/polish-report-section';
 import { ProblemSolutionFit } from '@/components/report/problem-solution-fit';
@@ -360,6 +361,7 @@ export function ReportClientShell({ report: initialReport }: { report: Report })
         reportSoFar: JSON.stringify(currentContent),
         companyName: report.companyName,
         location: report.location,
+        founderContext: formatFounderContext(report.founderProfile),
       });
       let isComplete = completionMarkerRegex.test(content);
       let attempts = 0;
@@ -371,6 +373,7 @@ export function ReportClientShell({ report: initialReport }: { report: Report })
           sectionToGenerate: sectionHeadings[sectionKey],
           companyName: report.companyName,
           partialContent: strippedContent,
+          founderContext: formatFounderContext(report.founderProfile),
         });
         content = strippedContent + '\n\n' + continuation;
         isComplete = completionMarkerRegex.test(content);

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { consumeFounderProfile } from '@/lib/founder-context';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -138,6 +139,10 @@ function IdeaFormInner() {
       const companyName = values.companyName || nameAndTagline.companyName;
       const tagline = nameAndTagline.tagline;
 
+      // Picks up the founding team when the user arrived from Ideation, so the
+      // validation report analyses the real founders instead of an archetype.
+      const founderProfile = consumeFounderProfile();
+
       const newReport: Omit<Report, 'id' | 'scores'> = {
         userId: user.uid,
         companyName: companyName,
@@ -148,6 +153,7 @@ function IdeaFormInner() {
         stage: values.stage,
         status: 'draft',
         tagline: tagline,
+        ...(founderProfile ? { founderProfile } : {}),
         content: {
             purpose: '',
             problem: '',

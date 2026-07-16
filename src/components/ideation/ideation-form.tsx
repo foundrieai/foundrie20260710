@@ -572,7 +572,7 @@ export function IdeationForm() {
              <p className="text-muted-foreground mt-2">{results.length} High-potential B2B SaaS opportunities tailored to your expertise.</p>
           </div>
           {results.map((idea, index) => (
-            <IdeaCard key={index} idea={idea} />
+            <IdeaCard key={index} idea={idea} founderProfile={founderProfile} />
           ))}
           <div className="pt-8 flex flex-col gap-4">
             <Button 

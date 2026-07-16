@@ -1,5 +1,6 @@
 
 import type { Timestamp } from 'firebase/firestore';
+import type { FounderProfile } from '@/ai/flows/generate-ideation-concepts';
 
 export interface Idea {
   title: string;
@@ -49,7 +50,13 @@ export interface Report {
   targetMarket?: string;
   location?: string;
   stage: 'Idea' | 'MVP' | 'Beta' | 'Revenue-generating';
-  
+  /**
+   * The real founding team, carried over from Ideation. Absent when the user
+   * started straight from an idea, in which case the report reasons about an
+   * ideal team instead of real people.
+   */
+  founderProfile?: FounderProfile;
+
   // Generated Content
   tagline?: string;
   executiveSummary?: string;
