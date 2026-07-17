@@ -6,7 +6,9 @@ const apiKey =
   process.env.GOOGLE_API_KEY ||
   process.env.GOOGLE_GENAI_API_KEY;
 
-export const MODEL_ID = process.env.GEMINI_MODEL_ID || 'googleai/gemini-2.5-flash';
+// gemini-2.5-flash is no longer available to new API projects, so the app runs
+// on gemini-3.5-flash (the current stable Flash tier). Override via GEMINI_MODEL_ID.
+export const MODEL_ID = process.env.GEMINI_MODEL_ID || 'googleai/gemini-3.5-flash';
 export const hasGoogleAIKey = !!apiKey;
 
 export function assertGoogleAIConfigured() {

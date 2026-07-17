@@ -1,4 +1,4 @@
-// MODEL LOCK: googleai/gemini-2.5-flash — DO NOT CHANGE
+// MODEL LOCK: googleai/gemini-3.5-flash (from genkit MODEL_ID) — keep Resumait on one model
 
 'use server';
 
