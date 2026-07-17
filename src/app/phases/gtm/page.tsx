@@ -8,6 +8,7 @@ import { gtmPhaseData } from '@/lib/phases/gtm-data';
 import { Loader2 } from 'lucide-react';
 import type { IdeamaitContext } from '@/lib/phases/types';
 import { getCompletedPhaseItems, getPhaseProgress, getRemainingPhaseItems } from '@/lib/phases/progress';
+import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
 
 export default function GoToMarketPage() {
   const { user, isUserLoading } = useUser();
@@ -27,15 +28,9 @@ export default function GoToMarketPage() {
       return;
     }
 
-    const savedState = window.localStorage.getItem('launchcode:phase:gtm');
-    if (savedState) {
-      try {
-        setLocalState(JSON.parse(savedState));
-      } catch {
-        window.localStorage.removeItem('launchcode:phase:gtm');
-      }
-    }
-  }, [phaseState]);
+    const savedState = readPhaseCache(user?.uid, 'gtm');
+    if (savedState) setLocalState(savedState);
+  }, [phaseState, user?.uid]);
 
   const isLoading = isUserLoading || isMetaLoading || isPhaseLoading;
 
@@ -49,7 +44,7 @@ export default function GoToMarketPage() {
 
   const handleUpdateState = async (newState: any) => {
     setLocalState(newState);
-    window.localStorage.setItem('launchcode:phase:gtm', JSON.stringify(newState));
+    writePhaseCache(user?.uid, 'gtm', newState);
     if (user && firestore) {
       try {
         await setDoc(doc(firestore, 'users', user.uid, 'journey', 'gtm'), newState, { merge: true });

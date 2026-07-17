@@ -10,6 +10,7 @@ import { Loader2, ArrowRight } from 'lucide-react';
 import type { IdeamaitContext } from '@/lib/phases/types';
 import { Button } from '@/components/ui/button';
 import { getCompletedPhaseItems, getPhaseProgress, getRemainingPhaseItems } from '@/lib/phases/progress';
+import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
 
 export default function ProductMarketFitPage() {
   const { user, isUserLoading } = useUser();
@@ -32,15 +33,9 @@ export default function ProductMarketFitPage() {
       return;
     }
 
-    const savedState = window.localStorage.getItem('launchcode:phase:pmf');
-    if (savedState) {
-      try {
-        setLocalState(JSON.parse(savedState));
-      } catch {
-        window.localStorage.removeItem('launchcode:phase:pmf');
-      }
-    }
-  }, [phaseState]);
+    const savedState = readPhaseCache(user?.uid, 'pmf');
+    if (savedState) setLocalState(savedState);
+  }, [phaseState, user?.uid]);
 
   const isLoading = isUserLoading || isMetaLoading || isPhaseLoading || isPsfLoading;
 
@@ -54,7 +49,7 @@ export default function ProductMarketFitPage() {
 
   const handleUpdateState = async (newState: any) => {
     setLocalState(newState);
-    window.localStorage.setItem('launchcode:phase:pmf', JSON.stringify(newState));
+    writePhaseCache(user?.uid, 'pmf', newState);
     if (user && firestore) {
       try {
         await setDoc(doc(firestore, 'users', user.uid, 'journey', 'pmf'), newState, { merge: true });

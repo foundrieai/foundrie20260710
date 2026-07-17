@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from './non-blocking-updates';
+import { clearPhaseCache } from '@/lib/phase-cache';
 
 const provider = new GoogleAuthProvider();
 
@@ -194,6 +195,9 @@ export const useSignOut = () => {
     const handleSignOut = async () => {
         try {
             await signOut(auth);
+            // Locally cached venture progress must not outlive the session, or
+            // the next person to sign in on this device inherits it.
+            clearPhaseCache();
             router.push('/');
         } catch (error: any) {
             // Removed console.error to prevent dev overlay

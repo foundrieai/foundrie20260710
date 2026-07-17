@@ -9,6 +9,7 @@ import { growthPhaseData } from '@/lib/phases/growth-data';
 import { Loader2 } from 'lucide-react';
 import type { IdeamaitContext } from '@/lib/phases/types';
 import { getCompletedPhaseItems, getPhaseProgress, getRemainingPhaseItems } from '@/lib/phases/progress';
+import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
 
 export default function ExitReadinessPage() {
   const { user, isUserLoading } = useUser();
@@ -32,15 +33,9 @@ export default function ExitReadinessPage() {
       return;
     }
 
-    const savedState = window.localStorage.getItem('launchcode:phase:exit');
-    if (savedState) {
-      try {
-        setLocalState(JSON.parse(savedState));
-      } catch {
-        window.localStorage.removeItem('launchcode:phase:exit');
-      }
-    }
-  }, [phaseState]);
+    const savedState = readPhaseCache(user?.uid, 'exit');
+    if (savedState) setLocalState(savedState);
+  }, [phaseState, user?.uid]);
 
   useEffect(() => {
     if (growthState) {
@@ -48,15 +43,9 @@ export default function ExitReadinessPage() {
       return;
     }
 
-    const savedState = window.localStorage.getItem('launchcode:phase:growth');
-    if (savedState) {
-      try {
-        setLocalGrowthState(JSON.parse(savedState));
-      } catch {
-        window.localStorage.removeItem('launchcode:phase:growth');
-      }
-    }
-  }, [growthState]);
+    const savedState = readPhaseCache(user?.uid, 'growth');
+    if (savedState) setLocalGrowthState(savedState);
+  }, [growthState, user?.uid]);
 
   const isLoading = isUserLoading || isMetaLoading || isPhaseLoading || isGrowthLoading;
 
@@ -70,7 +59,7 @@ export default function ExitReadinessPage() {
 
   const handleUpdateState = async (newState: any) => {
     setLocalState(newState);
-    window.localStorage.setItem('launchcode:phase:exit', JSON.stringify(newState));
+    writePhaseCache(user?.uid, 'exit', newState);
     if (user && firestore) {
       try {
         await setDoc(doc(firestore, 'users', user.uid, 'journey', 'exit'), newState, { merge: true });

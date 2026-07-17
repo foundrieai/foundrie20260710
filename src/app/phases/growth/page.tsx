@@ -9,6 +9,7 @@ import { gtmPhaseData } from '@/lib/phases/gtm-data';
 import { Loader2 } from 'lucide-react';
 import type { IdeamaitContext } from '@/lib/phases/types';
 import { getCompletedPhaseItems, getPhaseProgress, getRemainingPhaseItems } from '@/lib/phases/progress';
+import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
 
 export default function GrowthPage() {
   const { user, isUserLoading } = useUser();
@@ -31,15 +32,9 @@ export default function GrowthPage() {
       return;
     }
 
-    const savedState = window.localStorage.getItem('launchcode:phase:growth');
-    if (savedState) {
-      try {
-        setLocalState(JSON.parse(savedState));
-      } catch {
-        window.localStorage.removeItem('launchcode:phase:growth');
-      }
-    }
-  }, [phaseState]);
+    const savedState = readPhaseCache(user?.uid, 'growth');
+    if (savedState) setLocalState(savedState);
+  }, [phaseState, user?.uid]);
 
   const isLoading = isUserLoading || isMetaLoading || isPhaseLoading || isGtmLoading;
 
@@ -53,7 +48,7 @@ export default function GrowthPage() {
 
   const handleUpdateState = async (newState: any) => {
     setLocalState(newState);
-    window.localStorage.setItem('launchcode:phase:growth', JSON.stringify(newState));
+    writePhaseCache(user?.uid, 'growth', newState);
     if (user && firestore) {
       try {
         await setDoc(doc(firestore, 'users', user.uid, 'journey', 'growth'), newState, { merge: true });

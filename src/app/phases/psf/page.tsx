@@ -12,6 +12,7 @@ import type { IdeamaitContext } from '@/lib/phases/types';
 import type { Report } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { getCompletedPhaseItems, getPhaseProgress, getRemainingPhaseItems } from '@/lib/phases/progress';
+import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
 
 function ProblemSolutionFitPageInner() {
   const { user, isUserLoading } = useUser();
@@ -39,15 +40,9 @@ function ProblemSolutionFitPageInner() {
       return;
     }
 
-    const savedState = window.localStorage.getItem('launchcode:phase:psf');
-    if (savedState) {
-      try {
-        setLocalState(JSON.parse(savedState));
-      } catch {
-        window.localStorage.removeItem('launchcode:phase:psf');
-      }
-    }
-  }, [phaseState]);
+    const savedState = readPhaseCache(user?.uid, 'psf');
+    if (savedState) setLocalState(savedState);
+  }, [phaseState, user?.uid]);
 
   const isLoading = isUserLoading || isMetaLoading || isPhaseLoading || isLinkedReportLoading || isReportsLoading;
 
@@ -101,7 +96,7 @@ function ProblemSolutionFitPageInner() {
 
   const handleUpdateState = async (newState: any) => {
     setLocalState(newState);
-    window.localStorage.setItem('launchcode:phase:psf', JSON.stringify(newState));
+    writePhaseCache(user?.uid, 'psf', newState);
     if (user && firestore) {
       try {
         await setDoc(doc(firestore, 'users', user.uid, 'journey', 'psf'), newState, { merge: true });
