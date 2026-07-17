@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useId } from 'react';
+import { useState, useId, useRef, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { processFile } from '@/lib/file-processor';
 import { Loader2, Sparkles, Upload, UserPlus, Trash2, RotateCcw, Brain, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { IdeaCard } from './idea-card';
+import { ProcessingFlame } from '@/components/shared/processing-flame';
 import { Idea } from '@/lib/types';
 
 type FounderData = {
@@ -115,6 +116,17 @@ export function IdeationForm() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<Idea[]>([]);
   const [targetBusinessModel, setTargetBusinessModel] = useState('B2B');
+
+  // Any AI request in flight. Drives the always-visible processing indicator so
+  // a user never wonders whether their click registered.
+  const isBusy = isExtracting || isGenerating;
+  const topRef = useRef<HTMLDivElement>(null);
+
+  // When the stage changes, bring the user to the top of the new view rather
+  // than leaving them stranded at the bottom where the button they clicked was.
+  useEffect(() => {
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [stage]);
 
   // Any change to founder input must discard a previously extracted profile so a
   // stale/cached profile can never drive idea generation. Guarded so it is a
@@ -315,7 +327,19 @@ export function IdeationForm() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-4xl mx-auto">
+    <div ref={topRef} className="space-y-8 w-full max-w-4xl mx-auto">
+      {/* Always-visible "AI is working" indicator, pinned so it stays in view no
+          matter where the user has scrolled. */}
+      {isBusy && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
+          <div className="pointer-events-auto flex items-center rounded-full border border-white/12 bg-[#0c0912]/92 px-5 py-3 shadow-2xl backdrop-blur-xl">
+            <ProcessingFlame
+              label={isExtracting ? 'Analyzing founder profiles' : 'Synthesizing opportunities'}
+              sublabel="This can take a few moments"
+            />
+          </div>
+        </div>
+      )}
       <div className="flex justify-end mb-4 space-x-4">
         <Button variant="outline" onClick={handleReset} className="text-muted-foreground hover:text-foreground">
           <RotateCcw className="mr-2 h-4 w-4" /> Reset Forms

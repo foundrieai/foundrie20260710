@@ -16,6 +16,7 @@ import {
     generateNameAndTagline
 } from '@/ai/flows/generate-startup-validation-report';
 import { formatFounderContext } from '@/lib/founder-context';
+import { ProcessingFlame } from '@/components/shared/processing-flame';
 import { generateExecutiveSummary } from '@/ai/flows/generate-executive-summary';
 import { polishReportSection } from '@/ai/flows/polish-report-section';
 import { ProblemSolutionFit } from '@/components/report/problem-solution-fit';
@@ -567,11 +568,11 @@ Zenith's purpose is deeply intertwined with its "Trust-AI-Community Flywheel": a
                 <div className="glass-card p-6 text-center rounded-xl border-primary/20 bg-primary/5 shadow-glow">
                   <p className="text-lg font-body text-white leading-relaxed">{currentQuote.text}</p>
                   <p className="text-sm text-muted-foreground mt-2">- {currentQuote.author}</p>
-                  <div className="mt-6 flex items-center justify-center gap-3">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span className="text-sm font-medium animate-pulse text-primary/80">
-                      {generatingSection && generatingSection !== 'polishing' ? progressMessages[generatingSection] : "Orchestrating your validation..."}
-                    </span>
+                  <div className="mt-6 flex items-center justify-center">
+                    <ProcessingFlame
+                      label={generatingSection && generatingSection !== 'polishing' ? progressMessages[generatingSection] : 'Orchestrating your validation'}
+                      sublabel="Building your report section by section"
+                    />
                   </div>
                 </div>
               </div>
