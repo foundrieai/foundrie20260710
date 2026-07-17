@@ -14,6 +14,8 @@ import type { FullPhaseData, IdeamaitContext } from '@/lib/phases/types';
 import { buildDevAutofillPhaseState } from '@/lib/phases/dev-autofill';
 import { getPhaseProgress } from '@/lib/phases/progress';
 import { useToast } from '@/hooks/use-toast';
+import { useJourneyProgress } from '@/hooks/use-journey-progress';
+import { PhaseNavigationRail } from './phase-navigation-rail';
 
 export function PhaseView({
   phaseData,
@@ -33,6 +35,9 @@ export function PhaseView({
   devNextLabel?: string;
 }) {
   const [activeSubPhaseIndex, setActiveSubPhaseIndex] = useState(0);
+  // Where the founder actually stands, read from real state rather than
+  // inferred from the page they happen to be on.
+  const { completedPhases, unlockedPhases } = useJourneyProgress();
   const activeSubPhase = phaseData.subPhasesData[activeSubPhaseIndex];
   const { toast } = useToast();
 
@@ -121,6 +126,12 @@ export function PhaseView({
 
   return (
     <main className="report-skin min-h-screen bg-[var(--lc-bg)] pb-24 text-[var(--lc-text)]">
+      <PhaseNavigationRail
+        currentPhaseId={phaseData.id}
+        completedPhases={completedPhases}
+        unlockedPhases={unlockedPhases}
+        enableDevSkip={enableDevAutofill}
+      />
       <div className="sticky top-0 z-40 border-b border-[var(--lc-divider)] bg-[var(--lc-bg)]/95 px-6 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div>

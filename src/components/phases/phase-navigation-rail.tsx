@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { Check, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// The full journey: the two entry stages, then the five execution phases.
 const ALL_PHASES = [
+  { id: 'ideation', label: 'Ideation', shortLabel: 'Ideate', href: '/ideation', accent: 'var(--lc-pmf)' },
+  { id: 'validation', label: 'Validation', shortLabel: 'Validate', href: '/new', accent: 'var(--lc-pmf)' },
   { id: 'psf', label: 'Problem-Solution', shortLabel: 'PSF', href: '/phases/psf', accent: 'var(--lc-pmf)' },
   { id: 'pmf', label: 'Product-Market', shortLabel: 'PMF', href: '/phases/pmf', accent: 'var(--lc-pmf)' },
   { id: 'gtm', label: 'Go-to-Market', shortLabel: 'GTM', href: '/phases/gtm', accent: 'var(--lc-pmf)' },
@@ -15,14 +18,16 @@ const ALL_PHASES = [
 
 export function PhaseNavigationRail({
   currentPhaseId,
-  unlockedPhases = ['psf'],
+  completedPhases = [],
+  unlockedPhases = ['ideation', 'validation', 'psf'],
   enableDevSkip = false
 }: {
   currentPhaseId: string;
+  /** Phases finished for real. Completion is never inferred from position. */
+  completedPhases?: string[];
   unlockedPhases?: string[];
   enableDevSkip?: boolean;
 }) {
-  const currentIndex = ALL_PHASES.findIndex((phase) => phase.id === currentPhaseId);
   const effectiveUnlockedPhases = enableDevSkip
     ? ALL_PHASES.filter((phase) => phase.href !== '#').map((phase) => phase.id)
     : unlockedPhases;
@@ -30,11 +35,12 @@ export function PhaseNavigationRail({
   return (
     <div className="border-b border-[var(--lc-divider)] bg-[var(--lc-bg)] px-6 py-4">
       <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
           {ALL_PHASES.map((phase, index) => {
             const isUnlocked = effectiveUnlockedPhases.includes(phase.id);
             const isActive = phase.id === currentPhaseId;
-            const isComplete = isUnlocked && index < currentIndex;
+            // Real completion only. The active phase never shows as done.
+            const isComplete = !isActive && completedPhases.includes(phase.id);
             const node = (
               <div
                 className={cn(
