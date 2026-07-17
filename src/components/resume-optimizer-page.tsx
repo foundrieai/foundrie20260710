@@ -28,6 +28,8 @@ import { downloadResumeAsPdf } from "@/lib/generateResumePdf";
 import { downloadResumeAsDocx, downloadCoverLetterAsDocx } from "@/lib/generateResumeDocx";
 import { injectKeywords } from "@/lib/injectKeywords";
 import { CounselorChat } from "./counselor-chat";
+import { CrossPromoCard } from "@/components/shared/cross-promo-card";
+import { RESUMAIT_BRANDFORGE_PROMO } from "@/lib/cross-promotions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1254,6 +1256,10 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
                           onFixContact={handleFixContact}
                           isActionsDisabled={!optimizedResumeText || isLoading}
                       />
+
+                      {/* Career-to-brand bridge: with the resume optimized, nudge
+                          toward BrandForge to build the presence around it. */}
+                      <CrossPromoCard promo={RESUMAIT_BRANDFORGE_PROMO} />
                   </>
               )}
           </div>

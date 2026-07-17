@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from './non-blocking-updates';
 import { clearPhaseCache } from '@/lib/phase-cache';
+import { clearCrossPromoDismissals } from '@/lib/cross-promotions';
 
 const provider = new GoogleAuthProvider();
 
@@ -195,9 +196,11 @@ export const useSignOut = () => {
     const handleSignOut = async () => {
         try {
             await signOut(auth);
-            // Locally cached venture progress must not outlive the session, or
-            // the next person to sign in on this device inherits it.
+            // Locally cached venture progress and cross-promo dismissals must not
+            // outlive the session, or the next person to sign in on this device
+            // inherits them.
             clearPhaseCache();
+            clearCrossPromoDismissals();
             router.push('/');
         } catch (error: any) {
             // Removed console.error to prevent dev overlay

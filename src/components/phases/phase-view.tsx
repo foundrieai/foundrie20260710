@@ -16,6 +16,8 @@ import { getPhaseProgress } from '@/lib/phases/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useJourneyProgress } from '@/hooks/use-journey-progress';
 import { PhaseNavigationRail } from './phase-navigation-rail';
+import { CrossPromoCard } from '@/components/shared/cross-promo-card';
+import { PHASE_CROSS_PROMOS } from '@/lib/cross-promotions';
 
 export function PhaseView({
   phaseData,
@@ -282,6 +284,12 @@ export function PhaseView({
           </div>
 
           <aside className="space-y-5 lg:col-span-4">
+            {/* Nudge toward the tool that becomes relevant at this phase (e.g.
+                BrandForge as the company goes to market and grows). */}
+            {PHASE_CROSS_PROMOS[phaseData.id] && (
+              <CrossPromoCard promo={PHASE_CROSS_PROMOS[phaseData.id]!} />
+            )}
+
             {isJourneyComplete && (
               <Card className="border-[#1D9E75]/50 bg-[#1D9E75]/10 p-5 text-[#5DCAA5]">
                 <div className="mb-3 flex items-center gap-2">
