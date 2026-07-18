@@ -198,44 +198,6 @@ export function ReportClientShell({ report: initialReport }: { report: Report })
     }
   };
 
-  const handlePolishReport = async () => {
-    if (!reportRef || !canEdit) return;
-    setGeneratingSection('polishing');
-    try {
-      toast({ title: "Refining Analysis", description: "Enhancing strategic visuals..." });
-      const newContent = { ...report.content };
-      for (const key of sections) {
-        if (!newContent[key]) continue;
-        
-        const originalContent = newContent[key];
-        const result = await polishReportSection({
-          companyName: report.companyName,
-          sectionName: sectionHeadings[key],
-          content: originalContent,
-        });
-        
-        const polished = scrubInternalBranding(result.polishedContent.replace(completionMarkerRegex, '').trim());
-        
-        if (polished.length < (originalContent.length * 0.95)) {
-          console.warn(`[Polish] Potential content loss detected for ${key}. Skipping.`);
-          continue; 
-        }
-
-        newContent[key] = polished;
-        await updateDoc(reportRef, {
-          [`content.${key}`]: polished,
-          updatedAt: new Date().toISOString(),
-        });
-        setReport(prev => ({ ...prev, content: { ...prev.content, [key]: polished } }));
-      }
-      toast({ title: "Report Refined!", description: "All sections have been enhanced." });
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: "Refinement Failed", description: error.message });
-    } finally {
-      setGeneratingSection(null);
-    }
-  };
-
   const handlePolishSection = async (sectionKey: SectionKey) => {
     if (!reportRef || !canEdit || !report.content[sectionKey]) return;
     
@@ -805,12 +767,10 @@ Zenith's purpose is deeply intertwined with its "Trust-AI-Community Flywheel": a
                       />
                   </Accordion>
                   <div id="actions">
-                    <ReportActions 
-                      report={report} 
-                      onGenerateSummary={handleGenerateSummary} 
-                      onPolishReport={handlePolishReport}
-                      isGeneratingSummary={generatingSection === 'summary'} 
-                      isPolishing={generatingSection === 'polishing'}
+                    <ReportActions
+                      report={report}
+                      onGenerateSummary={handleGenerateSummary}
+                      isGeneratingSummary={generatingSection === 'summary'}
                       onProceedToPrototyping={async () => {
                         try {
                           const metaRef = doc(firestore, 'users', report.userId, 'journey', 'meta');

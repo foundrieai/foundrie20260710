@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { FileDown, Sparkles, Presentation, FileText, Loader2, Share2, Wand2, Copy, Check, Mail } from 'lucide-react';
+import { FileDown, Sparkles, Presentation, FileText, Loader2, Share2, Copy, Check, Mail } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import {
   DropdownMenu,
@@ -34,9 +34,7 @@ import { saveAs } from 'file-saver';
 interface ReportActionsProps {
   report: Report;
   onGenerateSummary: () => void;
-  onPolishReport: () => void;
   isGeneratingSummary: boolean;
-  isPolishing: boolean;
   onProceedToPrototyping?: () => void;
 }
 
@@ -147,12 +145,10 @@ function ShareDialog({ open, onOpenChange, report }: { open: boolean; onOpenChan
   );
 }
 
-export function ReportActions({ 
-  report, 
-  onGenerateSummary, 
-  onPolishReport,
+export function ReportActions({
+  report,
+  onGenerateSummary,
   isGeneratingSummary,
-  isPolishing,
   onProceedToPrototyping
 }: ReportActionsProps) {
   const { toast } = useToast();
@@ -382,15 +378,6 @@ export function ReportActions({
             </div>
           )}
           <div className="flex flex-wrap gap-4 w-full">
-            <Button 
-              size="lg" 
-              onClick={onPolishReport} 
-              disabled={isPolishing || report.status !== 'complete'} 
-              className="flex-grow min-w-[200px] h-16 text-base font-bold bg-accent hover:bg-accent/80 text-accent-foreground shadow-button-primary"
-            >
-              {isPolishing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Wand2 className="mr-2 h-5 w-5" />}
-              Polish Report
-            </Button>
             <Button size="lg" onClick={onGenerateSummary} disabled={isGeneratingSummary || report.status !== 'complete'} className="flex-grow min-w-[200px] h-16 text-base font-bold">
               {isGeneratingSummary ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
               {report.executiveSummary ? "Refresh Summary" : "Generate Summary"}
