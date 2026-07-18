@@ -11,10 +11,13 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateIdeationConcepts, extractFounderProfile, isIdeationAIConfigured, FounderProfile } from '@/ai/flows/generate-ideation-concepts';
 import { processFile } from '@/lib/file-processor';
-import { Loader2, Sparkles, Upload, UserPlus, Trash2, RotateCcw, Brain, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Loader2, Sparkles, Upload, UserPlus, Trash2, RotateCcw, Brain, ArrowRight, ArrowLeft, CheckCircle2, Bookmark } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { IdeaCard } from './idea-card';
 import { ProcessingFlame } from '@/components/shared/processing-flame';
+import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
+import { useUser } from '@/firebase';
 import { Idea } from '@/lib/types';
 
 type FounderData = {
@@ -117,6 +120,36 @@ export function IdeationForm() {
   const [results, setResults] = useState<Idea[]>([]);
   const [targetBusinessModel, setTargetBusinessModel] = useState('B2B');
 
+  // Persistent bookmarks so a saved idea can be returned to after navigating
+  // away (ideas themselves are ephemeral, so we keep the full idea object).
+  const { user } = useUser();
+  const [bookmarkedIdeas, setBookmarkedIdeas] = useState<Idea[]>([]);
+  const bookmarksKey = `foundrie_ideation_bookmarks_${user?.uid || 'demo'}`;
+  const ideaKey = (idea: Idea) => (idea.title || '').trim().toLowerCase();
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(bookmarksKey);
+      setBookmarkedIdeas(raw ? JSON.parse(raw) : []);
+    } catch {
+      setBookmarkedIdeas([]);
+    }
+  }, [bookmarksKey]);
+
+  const isBookmarked = (idea: Idea) => bookmarkedIdeas.some(b => ideaKey(b) === ideaKey(idea));
+
+  const toggleBookmark = (idea: Idea) => {
+    setBookmarkedIdeas(prev => {
+      const exists = prev.some(b => ideaKey(b) === ideaKey(idea));
+      const next = exists
+        ? prev.filter(b => ideaKey(b) !== ideaKey(idea))
+        : [{ ...idea, isBookmarked: true }, ...prev].slice(0, 50);
+      try { window.localStorage.setItem(bookmarksKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
+    toast({ title: isBookmarked(idea) ? 'Bookmark removed' : 'Idea bookmarked', description: isBookmarked(idea) ? undefined : 'Find it in Bookmarked Ideas at the top anytime.' });
+  };
+
   // Any AI request in flight. Drives the always-visible processing indicator so
   // a user never wonders whether their click registered.
   const isBusy = isExtracting || isGenerating;
@@ -162,8 +195,7 @@ export function IdeationForm() {
     setCreativityLevel(3);
   };
 
-  const handleFileUpload = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const processFounderFile = async (id: string, file: File) => {
     if (!file) return;
 
     handleFounderChange(id, 'fileName', file.name);
@@ -181,9 +213,53 @@ export function IdeationForm() {
         description: result.error || 'Please try a PDF, Word, or TXT file, or use the Quick Questionnaire.',
       });
     }
+  };
+
+  // Handle one or many files. The first file fills the current founder; each
+  // additional file spins up a new founder so a batch of resumes becomes a
+  // batch of founders in one action.
+  const handleFilesSelected = async (id: string, fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (!files.length) return;
+    if (files.length === 1) {
+      await processFounderFile(id, files[0]);
+      return;
+    }
+    const extraFounders = files.slice(1).map(() => createEmptyFounder());
+    setFounders(prev => [...prev, ...extraFounders]);
+    invalidateProfile();
+    await processFounderFile(id, files[0]);
+    for (let k = 0; k < extraFounders.length; k++) {
+      await processFounderFile(extraFounders[k].id, files[k + 1]);
+    }
+    toast({ title: 'Founders added', description: `Created ${files.length} founder profiles from your uploads.` });
+  };
+
+  const handleFileUpload = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    await handleFilesSelected(id, e.target.files);
     // Allow re-selecting the same file after an error.
     e.target.value = '';
   };
+
+  // Step back through the flow without wiping input (unlike Reset Forms).
+  const handleBack = () => {
+    setStage(prev => (prev === 'results' ? 'configuring' : 'input'));
+  };
+
+  const [draggingFounderId, setDraggingFounderId] = useState<string | null>(null);
+  const founderDropHandlers = (id: string) => ({
+    onDragOver: (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); },
+    onDragEnter: (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setDraggingFounderId(id); },
+    onDragLeave: (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setDraggingFounderId(prev => (prev === id ? null : prev)); },
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDraggingFounderId(null);
+      const files = e.dataTransfer?.files;
+      if (files?.length) void handleFilesSelected(id, files);
+    },
+  });
 
   const handleExtractProfile = async () => {
     // Never proceed without genuinely sufficient input. Notify and stop.
@@ -341,10 +417,38 @@ export function IdeationForm() {
         </div>
       )}
       <div className="flex justify-end mb-4 space-x-4">
+        {stage !== 'input' && (
+          <Button variant="outline" onClick={handleBack} className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
+        )}
         <Button variant="outline" onClick={handleReset} className="text-muted-foreground hover:text-foreground">
           <RotateCcw className="mr-2 h-4 w-4" /> Reset Forms
         </Button>
       </div>
+
+      {bookmarkedIdeas.length > 0 && (
+        <details className="glass-card rounded-lg p-4 md:p-6 group" open>
+          <summary className="flex cursor-pointer list-none items-center justify-between">
+            <span className="flex items-center gap-2 text-lg font-bold font-headline">
+              <Bookmark className="h-5 w-5 fill-primary text-primary" />
+              Bookmarked Ideas ({bookmarkedIdeas.length})
+            </span>
+            <span className="text-xs text-muted-foreground">Saved on this device — click to expand or collapse</span>
+          </summary>
+          <div className="mt-4 space-y-4">
+            {bookmarkedIdeas.map((idea, i) => (
+              <IdeaCard
+                key={`bookmark-${i}`}
+                idea={idea}
+                founderProfile={founderProfile}
+                isBookmarked
+                onToggleBookmark={() => toggleBookmark(idea)}
+              />
+            ))}
+          </div>
+        </details>
+      )}
 
       {stage === 'input' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -387,41 +491,65 @@ export function IdeationForm() {
                 </TabsList>
 
                 <TabsContent value="resume" className="space-y-6">
-                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-muted rounded-lg bg-background/50 hover:bg-accent/50 transition-colors">
+                  <div
+                    {...founderDropHandlers(founder.id)}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg transition-colors",
+                      draggingFounderId === founder.id ? "border-primary bg-primary/10" : "border-muted bg-background/50 hover:bg-accent/50"
+                    )}
+                  >
                     <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
                     <Label htmlFor={`resume-upload-${fieldUid}-${index}`} className="cursor-pointer text-center">
                       <span className="text-primary font-medium">Click to upload</span> or drag and drop
                       <br />
                       <span className="text-sm text-muted-foreground mt-1 block">PDF, Word, ODT, RTF, or TXT (Max 5MB)</span>
                     </Label>
-                    <Input 
-                      id={`resume-upload-${fieldUid}-${index}`} 
-                      type="file" 
+                    <Input
+                      id={`resume-upload-${fieldUid}-${index}`}
+                      type="file"
                       accept=".pdf,.doc,.docx,.odt,.rtf,.txt,.md"
-                      className="hidden" 
-                      onChange={(e) => handleFileUpload(founder.id, e)} 
+                      multiple
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(founder.id, e)}
                     />
                   </div>
-                  {founder.fileName && <p className="text-sm text-center text-muted-foreground">Attached: <span className="text-foreground font-medium">{founder.fileName}</span></p>}
+                  {founder.fileName && (
+                    <div className="flex items-center justify-center gap-2 rounded-md border border-green-500/40 bg-green-500/10 px-3 py-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+                      <span className="text-sm font-medium text-foreground">{founder.fileName} attached</span>
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="linkedin" className="space-y-6">
-                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-muted rounded-lg bg-background/50 hover:bg-accent/50 transition-colors">
+                  <div
+                    {...founderDropHandlers(founder.id)}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg transition-colors",
+                      draggingFounderId === founder.id ? "border-primary bg-primary/10" : "border-muted bg-background/50 hover:bg-accent/50"
+                    )}
+                  >
                     <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
                     <Label htmlFor={`linkedin-upload-${fieldUid}-${index}`} className="cursor-pointer text-center">
-                      <span className="text-primary font-medium">Click to upload</span> LinkedIn Profile PDF
+                      <span className="text-primary font-medium">Click to upload</span> or drag and drop LinkedIn Profile PDF
                       <br />
                       <span className="text-sm text-muted-foreground mt-1 block">Go to your LinkedIn profile {'>'} More {'>'} Save to PDF</span>
                     </Label>
-                    <Input 
-                      id={`linkedin-upload-${fieldUid}-${index}`} 
-                      type="file" 
+                    <Input
+                      id={`linkedin-upload-${fieldUid}-${index}`}
+                      type="file"
                       accept=".pdf,.doc,.docx,.odt,.rtf,.txt,.md"
-                      className="hidden" 
-                      onChange={(e) => handleFileUpload(founder.id, e)} 
+                      multiple
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(founder.id, e)}
                     />
                   </div>
-                  {founder.fileName && <p className="text-sm text-center text-muted-foreground">Attached: <span className="text-foreground font-medium">{founder.fileName}</span></p>}
+                  {founder.fileName && (
+                    <div className="flex items-center justify-center gap-2 rounded-md border border-green-500/40 bg-green-500/10 px-3 py-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+                      <span className="text-sm font-medium text-foreground">{founder.fileName} attached</span>
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="questionnaire" className="space-y-6">
@@ -596,7 +724,13 @@ export function IdeationForm() {
              <p className="text-muted-foreground mt-2">{results.length} High-potential B2B SaaS opportunities tailored to your expertise.</p>
           </div>
           {results.map((idea, index) => (
-            <IdeaCard key={index} idea={idea} founderProfile={founderProfile} />
+            <IdeaCard
+              key={index}
+              idea={idea}
+              founderProfile={founderProfile}
+              isBookmarked={isBookmarked(idea)}
+              onToggleBookmark={() => toggleBookmark(idea)}
+            />
           ))}
           <div className="pt-8 flex flex-col gap-4">
             <Button 
@@ -615,6 +749,18 @@ export function IdeationForm() {
           </div>
         </div>
       )}
+
+      <IdeamaitAssistant
+        context={{
+          companyName: 'your venture',
+          currentPhaseName: 'Ideation',
+          currentActivityName: 'Idea generation and founder-market fit',
+          startupDescription:
+            founderProfile
+              ? `Founder is exploring ${targetBusinessModel} startup ideas. Profile summary: ${JSON.stringify(founderProfile).slice(0, 1200)}`
+              : `Founder is exploring ${targetBusinessModel} startup ideas and building their founder profile.`,
+        }}
+      />
     </div>
   );
 }

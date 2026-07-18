@@ -103,6 +103,8 @@ export default function GoToMarketPage() {
         enableDevAutofill={enableDevAutofill}
         devNextHref="/phases/growth"
         devNextLabel="Dev open Growth"
+        devPrevHref="/phases/pmf"
+        devPrevLabel="Dev open PMF"
       />
     </>
   );

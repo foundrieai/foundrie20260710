@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "./ui/input";
 import { processFile } from "@/lib/file-processor";
+import { useFileDrop } from "@/hooks/use-file-drop";
 import { cn, stripTrackingMarkers } from "@/lib/utils";
 import React from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -360,20 +361,34 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
     return () => { if (rescoreTimerRef.current) clearTimeout(rescoreTimerRef.current); };
   }, [optimizedResumeText, refreshAllScores]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const [uploadedFileName, setUploadedFileName] = useState('');
+
+  const processResumeFile = async (file: File) => {
     if (!file) return;
     setIsLoading(true);
     try {
       const result = await processFile(file);
       if (result.extractionStatus === 'success' && result.extractedText) {
         form.setValue('resume', result.extractedText);
+        setUploadedFileName(file.name);
+        setResumeInputType('paste');
         toast({ title: "File Uploaded", description: "Text extracted successfully." });
+      } else {
+        toast({ variant: 'destructive', title: "Could not read that file", description: result.error || "Please try a PDF or DOCX file." });
       }
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processResumeFile(file);
+    e.target.value = '';
+  };
+
+  const resumeDrop = useFileDrop(processResumeFile);
 
   const handleExtractKeywords = async () => {
     if (!isStep2Complete) return;
@@ -600,11 +615,16 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
       });
       
       const resultData = await response.json();
-      if (resultData.success && resultData.data) {
+      if (resultData.success && resultData.data?.optimizedResumeText) {
         setOptimizedResumeText(resultData.data.optimizedResumeText);
-        setEditText(resultData.data.optimizedResumeText); 
+        setEditText(resultData.data.optimizedResumeText);
         setResult(resultData.data);
+        toast({ title: "Resume Rewritten", description: "Your resume has been restructured for ATS impact. Rescoring now." });
+      } else {
+        toast({ variant: 'destructive', title: "Rewrite Failed", description: resultData.error || "The optimization engine could not produce a new version. Please try again." });
       }
+    } catch (err) {
+      toast({ variant: 'destructive', title: "Network Error", description: "Unable to reach the optimization engine." });
     } finally {
       setIsLoading(false);
     }
@@ -807,14 +827,26 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
                           <Textarea placeholder="Paste resume content here . . . " className="min-h-[200px] font-mono text-sm leading-relaxed border-2" value={resumeValue} onChange={(e) => form.setValue('resume', e.target.value)} />
                       ) : (
                           <div className="space-y-4">
-                              <Button asChild variant="outline" className="w-full h-32 border-dashed border-2 flex flex-col gap-3 group">
-                                  <label className="cursor-pointer">
-                                    <Upload className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors"/> 
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Drop PDF/DOCX or Browse System</span>
+                              <Button asChild variant="outline" className={cn("w-full h-32 border-dashed border-2 flex flex-col gap-3 group transition-colors", resumeDrop.isDragging && "border-primary bg-primary/5")}>
+                                  <label className="cursor-pointer" {...resumeDrop.dropHandlers}>
+                                    <Upload className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors"/>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">{resumeDrop.isDragging ? 'Drop to upload' : 'Drop PDF/DOCX or Browse System'}</span>
                                     <input type="file" className="hidden" accept=".pdf,.docx" onChange={handleFileChange}/>
                                   </label>
                               </Button>
                           </div>
+                      )}
+                      {uploadedFileName && (
+                        <div className="flex items-center justify-between gap-2 rounded-md border border-green-500/40 bg-green-500/10 px-3 py-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
+                            <span className="truncate text-sm font-medium text-foreground">{uploadedFileName}</span>
+                            <Badge variant="outline" className="shrink-0 border-green-500/40 text-[9px] font-bold uppercase tracking-wider text-green-700">Uploaded</Badge>
+                          </div>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" aria-label="Remove uploaded file" onClick={() => { setUploadedFileName(''); form.setValue('resume', ''); }}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                   </CardContent>
               </Card>

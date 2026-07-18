@@ -129,6 +129,8 @@ export default function ExitReadinessPage() {
       onUpdateState={handleUpdateState}
       enableDevAutofill={enableDevAutofill}
       devNextLabel="Dev finish journey"
+      devPrevHref="/phases/growth"
+      devPrevLabel="Dev open Growth"
     />
   );
 }

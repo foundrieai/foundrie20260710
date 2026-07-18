@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import {
   Lightbulb,
   Puzzle,
@@ -51,12 +52,31 @@ function AppSidebarInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
 
   // Extract report IDs from the pathname if we are on a report page
   const reportMatch = pathname.match(/\/report\/([^\/]+)\/([^\/]+)/);
   const isReportPage = !!reportMatch;
   const baseUrl = isReportPage ? `/report/${reportMatch[1]}/${reportMatch[2]}` : '';
   const currentModule = searchParams.get('module') || 'validation';
+
+  // The user's active validation report is the source of context for every phase.
+  // Off the report page we recover its id from the ?reportId= query (carried by
+  // phase routes) or the durable journey/meta doc, so links like "Validation"
+  // return to the real report instead of the blank /new form.
+  const journeyMetaRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'users', user.uid, 'journey', 'meta') : null),
+    [user, firestore]
+  );
+  const { data: journeyMeta } = useDoc<any>(journeyMetaRef, { suppressGlobalPermissionError: true });
+
+  const knownReportId = isReportPage
+    ? reportMatch[2]
+    : (searchParams.get('reportId') || journeyMeta?.linkedReportId || null);
+  const knownUserId = isReportPage ? reportMatch[1] : (user?.uid || null);
+  const canLinkReport = !!knownReportId && !!knownUserId;
+  const reportBaseUrl = canLinkReport ? `/report/${knownUserId}/${knownReportId}` : '';
+  const withReportId = (path: string) => (canLinkReport ? `${path}?reportId=${encodeURIComponent(knownReportId as string)}` : path);
 
   // Only render sidebar on company idea routes
   const isCompanyIdeaRoute = pathname.startsWith('/ideation') || pathname.startsWith('/new') || pathname.startsWith('/phases') || pathname.startsWith('/vault') || pathname.startsWith('/decisions') || pathname.startsWith('/portfolio') || isReportPage;
@@ -78,7 +98,11 @@ function AppSidebarInner() {
             isActive = pathname === '/ideation';
             href = '/ideation';
           } else if (item.id === 'validation') {
-            href = isReportPage ? `${baseUrl}?module=validation` : '/new';
+            // Return to the real validation report when one exists; only fall
+            // back to the blank /new form for a brand-new idea with no report.
+            href = isReportPage
+              ? `${baseUrl}?module=validation`
+              : (canLinkReport ? `${reportBaseUrl}?module=validation` : '/new');
             isActive = pathname === '/new' || (isReportPage && currentModule === 'validation');
           } else if (item.id === 'vault') {
             href = '/vault';
@@ -93,6 +117,9 @@ function AppSidebarInner() {
             href = `${baseUrl}?module=${item.id}`;
             isActive = currentModule === item.id;
           } else {
+            // Phase routes (psf/pmf/…): carry the reportId forward so the phase
+            // keeps its validation context instead of losing it on navigation.
+            href = withReportId(item.href);
             isActive = pathname === item.href;
           }
 

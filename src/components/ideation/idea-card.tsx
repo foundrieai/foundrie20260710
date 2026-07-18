@@ -13,14 +13,24 @@ interface IdeaCardProps {
   idea: Idea;
   /** Carried into Validation so the report analyses the real founding team. */
   founderProfile?: FounderProfile | null;
+  /** When provided, the card is controlled by the parent (persistent bookmarks). */
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
 }
 
-export function IdeaCard({ idea: initialIdea, founderProfile }: IdeaCardProps) {
+export function IdeaCard({ idea: initialIdea, founderProfile, isBookmarked, onToggleBookmark }: IdeaCardProps) {
   const router = useRouter();
   const [idea, setIdea] = useState(initialIdea);
 
+  const controlled = typeof onToggleBookmark === 'function';
+  const bookmarked = controlled ? !!isBookmarked : idea.isBookmarked;
+
   const toggleBookmark = () => {
-    setIdea(prev => ({ ...prev, isBookmarked: !prev.isBookmarked }));
+    if (controlled) {
+      onToggleBookmark!();
+    } else {
+      setIdea(prev => ({ ...prev, isBookmarked: !prev.isBookmarked }));
+    }
   };
 
   const handleValidate = () => {
@@ -43,8 +53,8 @@ export function IdeaCard({ idea: initialIdea, founderProfile }: IdeaCardProps) {
         onClick={toggleBookmark}
         className="absolute top-6 right-6 hover:bg-transparent"
       >
-        <Bookmark 
-          className={`h-6 w-6 transition-colors ${idea.isBookmarked ? 'fill-primary text-primary' : 'text-muted-foreground'}`} 
+        <Bookmark
+          className={`h-6 w-6 transition-colors ${bookmarked ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
         />
       </Button>
 

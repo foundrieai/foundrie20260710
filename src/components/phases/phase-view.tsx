@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, Archive, ClipboardList, FileText, Flag, MessageSquare, WandSparkles } from 'lucide-react';
+import { AlertCircle, Archive, ArrowLeft, ClipboardList, FileText, Flag, MessageSquare, WandSparkles } from 'lucide-react';
 import { ActivityCard } from './activity-card';
 import { DeliverableCard } from './deliverable-card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { useJourneyProgress } from '@/hooks/use-journey-progress';
 import { PhaseNavigationRail } from './phase-navigation-rail';
 import { CrossPromoCard } from '@/components/shared/cross-promo-card';
 import { PHASE_CROSS_PROMOS } from '@/lib/cross-promotions';
+import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
 
 export function PhaseView({
   phaseData,
@@ -26,7 +27,9 @@ export function PhaseView({
   onUpdateState,
   enableDevAutofill = false,
   devNextHref,
-  devNextLabel
+  devNextLabel,
+  devPrevHref,
+  devPrevLabel
 }: {
   phaseData: FullPhaseData;
   context: IdeamaitContext;
@@ -35,6 +38,8 @@ export function PhaseView({
   enableDevAutofill?: boolean;
   devNextHref?: string;
   devNextLabel?: string;
+  devPrevHref?: string;
+  devPrevLabel?: string;
 }) {
   const [activeSubPhaseIndex, setActiveSubPhaseIndex] = useState(0);
   // Where the founder actually stands, read from real state rather than
@@ -120,6 +125,12 @@ export function PhaseView({
     }
   };
 
+  const handleDevGoBack = () => {
+    if (devPrevHref) {
+      window.location.href = `${devPrevHref}${devPrevHref.includes('?') ? '&' : '?'}dev=1`;
+    }
+  };
+
   const { activityPct, deliverablePct, milestonePct, masterProgress } = getPhaseProgress(phaseData, phaseState);
   const isJourneyComplete = phaseData.id === 'exit' && masterProgress >= 80 && milestonePct >= 80;
   const devActionLabel = devNextLabel
@@ -151,6 +162,12 @@ export function PhaseView({
               >
                 <WandSparkles className="mr-2 h-4 w-4" />
                 Dev autofill
+              </Button>
+            )}
+            {enableDevAutofill && devPrevLabel && (
+              <Button type="button" variant="outline" size="sm" className="lc-secondary-button text-xs" onClick={handleDevGoBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {devPrevLabel}
               </Button>
             )}
             {enableDevAutofill && devNextLabel && (
@@ -377,6 +394,16 @@ export function PhaseView({
           </aside>
         </div>
       </div>
+      <IdeamaitAssistant
+        context={{
+          companyName: context.companyName,
+          startupDescription: context.startupDescription,
+          currentPhaseName: context.currentPhaseName || phaseData.name,
+          currentSubPhase: activeSubPhase?.label,
+          currentActivityName: activeSubPhase?.label,
+          daysInPhase: context.daysInPhase,
+        }}
+      />
     </main>
   );
 }

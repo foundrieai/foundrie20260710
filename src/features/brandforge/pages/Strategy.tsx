@@ -19,7 +19,7 @@ import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from '../motion-shim';
 
 export const StrategyPage: React.FC = () => {
-  const { addToast, currentIdentity } = useApp();
+  const { addToast, currentIdentity, user, schedulePost, setCurrentPath, scheduledPosts, addNotification } = useApp();
   
   // View states
   const [activeTab, setActiveTab] = useState('onboarding');
@@ -58,8 +58,9 @@ export const StrategyPage: React.FC = () => {
     setExpandedPosts(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const [isDraggingDoc, setIsDraggingDoc] = useState(false);
+
+  const readDocumentFile = (file: File) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -69,6 +70,19 @@ export const StrategyPage: React.FC = () => {
       addToast(`Attached ${file.name}`, 'success');
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) readDocumentFile(file);
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDoc(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) readDocumentFile(file);
   };
   
   const handleGenerateStrategy = async () => {
@@ -130,6 +144,104 @@ export const StrategyPage: React.FC = () => {
     }, 1000);
   };
 
+  // --- Real actions for the generated-strategy header + execution queue ---
+
+  const strategyName = () => dnaForm.brandName || documentFile?.name?.split('.')[0] || 'Untitled Strategy';
+
+  const daysFromNow = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    d.setHours(9, 0, 0, 0);
+    return d.toISOString();
+  };
+
+  const composePostContent = (post: any, theme?: string) => {
+    if (!post) return '';
+    if (post.fullDraft) return post.fullDraft;
+    return [post.hook, post.body, post.cta].filter(Boolean).join('\n\n') || theme || '';
+  };
+
+  // Vault — persist the full generated strategy artifact (BrandForge stores all
+  // state in localStorage; this is the same real persistence layer).
+  const handleSaveToVault = () => {
+    try {
+      const snapshot = {
+        id: `strategy-${Date.now()}`,
+        brandName: strategyName(),
+        savedAt: new Date().toISOString(),
+        metrics, positioningMoat, narrativeSynthesis, focusAreas,
+        authorityStrengths, visibilityGaps, roadmap, calendar, opportunities,
+      };
+      const key = `foundrie_brandforge_${user?.id || 'demo'}_strategy_vault`;
+      let existing: any[] = [];
+      try { existing = JSON.parse(window.localStorage.getItem(key) || '[]'); } catch { existing = []; }
+      window.localStorage.setItem(key, JSON.stringify([snapshot, ...existing].slice(0, 25)));
+      addToast(`"${snapshot.brandName}" strategy saved to your Vault.`, 'success');
+      addNotification({ title: 'Strategy Archived', description: `${snapshot.brandName} strategy artifact saved to the Vault.`, type: 'success', linkPath: 'strategy' });
+    } catch {
+      addToast('Could not save to Vault. Please try again.', 'info');
+    }
+  };
+
+  // Generate First Move — draft one launch post from the strategy, queue it, and
+  // take the user to the Composer where it now lives.
+  const handleGenerateFirstMove = async () => {
+    const firstWeek = calendar?.[0];
+    const content =
+      composePostContent(firstWeek?.post1, firstWeek?.theme) ||
+      [
+        positioningMoat && `${positioningMoat}`,
+        focusAreas?.[0] && `Where we're focused first: ${focusAreas[0]}.`,
+        'Follow along as we build in public.',
+      ].filter(Boolean).join('\n\n');
+
+    if (!content) {
+      addToast('Generate a strategy first to draft your opening move.', 'info');
+      return;
+    }
+    await schedulePost({
+      platformTargets: ['LinkedIn'],
+      content,
+      mediaRefs: [],
+      scheduledAt: daysFromNow(1),
+      timezone: 'UTC',
+    });
+    addToast('First Move drafted and queued in the Composer.', 'success');
+    setCurrentPath('calendar');
+  };
+
+  // Execute Power Move — turn the full generated 30-day calendar into a scheduled
+  // campaign, then open the Composer/Calendar to review it.
+  const handleExecutePowerMove = async () => {
+    const posts: { content: string; day: number }[] = [];
+    (calendar || []).forEach((week: any, i: number) => {
+      const base = (week.week || i + 1) * 7 - 6;
+      [week.post1, week.post2].forEach((p: any, j: number) => {
+        const content = composePostContent(p, week.theme);
+        if (content) posts.push({ content, day: base + j * 3 });
+      });
+    });
+
+    if (posts.length === 0) {
+      // No calendar yet — schedule a single coordinated launch post.
+      await handleGenerateFirstMove();
+      return;
+    }
+
+    for (const p of posts) {
+      await schedulePost({
+        platformTargets: ['LinkedIn', 'X'],
+        content: p.content,
+        mediaRefs: [],
+        scheduledAt: daysFromNow(p.day),
+        timezone: 'UTC',
+      });
+    }
+    addToast(`Power Move executed — ${posts.length} posts scheduled across your 30-day calendar.`, 'success');
+    addNotification({ title: 'Power Move Executed', description: `${posts.length} strategy posts scheduled to the Composer.`, type: 'schedule', linkPath: 'calendar' });
+    setCurrentPath('calendar');
+  };
+
   // Generated Strategy UI (BrandForge Light Theme)
   if (dnaGenerated) {
     return (
@@ -147,15 +259,15 @@ export const StrategyPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-4">
-            <button 
-              onClick={() => addToast('Strategy saved to secure Vault.', 'success')}
+            <button
+              onClick={handleSaveToVault}
               className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg flex items-center hover:bg-slate-50 transition-colors shadow-sm"
             >
               <Map className="w-4 h-4 mr-2" />
               Vault
             </button>
-            <button 
-              onClick={() => addToast('Power Move Sequence Initiated!', 'success')}
+            <button
+              onClick={handleExecutePowerMove}
               className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm"
             >
               <Zap className="w-4 h-4 mr-2 fill-current" />
@@ -269,13 +381,25 @@ export const StrategyPage: React.FC = () => {
                     <Zap className="w-4 h-4 text-blue-600 fill-blue-600" />
                   </div>
                   <div className="text-center space-y-4">
-                    <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">NO ACTIVE MOVES IN THE QUEUE.</p>
-                    <button 
-                      onClick={() => addToast('First Move generated and queued in Composer.', 'success')}
+                    {scheduledPosts.length === 0 ? (
+                      <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">NO ACTIVE MOVES IN THE QUEUE.</p>
+                    ) : (
+                      <p className="text-xs font-bold text-blue-600 tracking-wider uppercase">{scheduledPosts.length} MOVE{scheduledPosts.length === 1 ? '' : 'S'} QUEUED IN THE COMPOSER.</p>
+                    )}
+                    <button
+                      onClick={handleGenerateFirstMove}
                       className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold tracking-wider uppercase rounded-lg hover:bg-blue-100 w-full transition-colors border border-blue-200"
                     >
                       GENERATE FIRST MOVE
                     </button>
+                    {scheduledPosts.length > 0 && (
+                      <button
+                        onClick={() => setCurrentPath('calendar')}
+                        className="px-4 py-2 bg-white text-slate-600 text-xs font-bold tracking-wider uppercase rounded-lg hover:bg-slate-50 w-full transition-colors border border-slate-200"
+                      >
+                        OPEN COMPOSER
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -484,16 +608,25 @@ export const StrategyPage: React.FC = () => {
               </div>
 
               {/* File Upload Section */}
-              <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:border-blue-500 transition-colors relative bg-slate-50 group">
-                <input 
-                  type="file" 
+              <div
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingDoc(true); }}
+                onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingDoc(false); }}
+                onDrop={handleFileDrop}
+                className={cn(
+                  "border-2 border-dashed rounded-2xl p-8 text-center transition-colors relative group",
+                  isDraggingDoc ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-slate-50 hover:border-blue-500"
+                )}
+              >
+                <input
+                  type="file"
                   accept=".pdf,.txt,.doc,.docx"
                   onChange={handleFileUpload}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
                 <Upload className="w-8 h-8 text-slate-400 mx-auto mb-4 group-hover:text-blue-500 transition-colors" />
-                <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Upload Profile or Resume</h3>
-                <p className="text-xs text-slate-500 mt-1">PDF, DOC, or TXT up to 5MB</p>
+                <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{isDraggingDoc ? 'Drop to attach' : 'Upload Profile or Resume'}</h3>
+                <p className="text-xs text-slate-500 mt-1">Click or drag &amp; drop — PDF, DOC, or TXT up to 5MB</p>
                 {documentFile && (
                   <div className="mt-4 inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
                     <CheckCircle2 className="w-3 h-3 mr-2" />

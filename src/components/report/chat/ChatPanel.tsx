@@ -395,7 +395,7 @@ export function ChatPanel({ open, onOpenChange, report, onRevision }: ChatPanelP
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               disabled={isAiThinking}
-              className="flex-grow bg-white/5 border-white/10 focus:border-primary/50 transition-all h-11"
+              className="flex-grow bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-primary/50 transition-all h-11"
             />
             
             <Button 

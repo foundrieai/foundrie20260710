@@ -62,6 +62,17 @@ const markdownComponents = {
   h1: ({...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-2xl font-bold font-headline mb-4 mt-8" {...props} />,
   h2: ({...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-xl font-bold font-headline mb-3 mt-6" {...props} />,
   h3: ({...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-lg font-bold font-headline mb-2 mt-4" {...props} />,
+  // Map the remaining heading/inline elements explicitly so markdown never
+  // falls through to the aggressive global h4-h6/strong element rules (which
+  // otherwise bleed unexpected bold/oversized type into the report body).
+  h4: ({...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h4 className="text-base font-bold font-headline mb-2 mt-4" {...props} />,
+  h5: ({...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h5 className="text-sm font-bold font-headline uppercase tracking-wide mb-2 mt-4" {...props} />,
+  h6: ({...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h6 className="text-sm font-bold font-headline uppercase tracking-wide mb-2 mt-4" {...props} />,
+  strong: ({...props}: React.HTMLAttributes<HTMLElement>) => <strong className="font-semibold text-white" {...props} />,
+  em: ({...props}: React.HTMLAttributes<HTMLElement>) => <em className="italic" {...props} />,
+  a: ({...props}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-primary underline underline-offset-2 hover:text-primary/80" {...props} />,
+  blockquote: ({...props}: React.HTMLAttributes<HTMLQuoteElement>) => <blockquote className="border-l-2 border-primary/40 pl-4 italic text-muted-foreground my-4" {...props} />,
+  code: ({...props}: React.HTMLAttributes<HTMLElement>) => <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[0.85em]" {...props} />,
   table: ({...props}: React.TableHTMLAttributes<HTMLTableElement>) => (
     <div className="overflow-x-auto my-6">
       <table className="w-full border-collapse border border-white/10 text-sm" {...props} />
@@ -106,6 +117,7 @@ export function ReportClientShell({ report: initialReport }: { report: Report })
   const [editBuffer, setEditBuffer] = useState<string>("");
 
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [quotePaused, setQuotePaused] = useState(false);
 
   const { toast } = useToast();
   const { user } = useUser();
@@ -138,11 +150,13 @@ export function ReportClientShell({ report: initialReport }: { report: Report })
 
   useEffect(() => {
     if (report.status !== 'generating' && report.status !== 'draft') return;
+    if (quotePaused) return;
+    // 9s per quote (up from 5s) so they can actually be read; hovering pauses.
     const interval = setInterval(() => {
       setCurrentQuoteIndex((prev) => (prev + 1) % businessQuotes.length);
-    }, 5000);
+    }, 9000);
     return () => clearInterval(interval);
-  }, [report.status]);
+  }, [report.status, quotePaused]);
 
   useEffect(() => {
     if (report.status !== 'complete') return;
@@ -565,7 +579,11 @@ Zenith's purpose is deeply intertwined with its "Trust-AI-Community Flywheel": a
           <header className="text-center mb-12 print:hidden flex flex-col items-center gap-8 min-h-[220px] justify-center">
             {isGenerating && (
               <div className="w-full max-w-2xl animate-fadeInUp">
-                <div className="glass-card p-6 text-center rounded-xl border-primary/20 bg-primary/5 shadow-glow">
+                <div
+                  className="glass-card p-6 text-center rounded-xl border-primary/20 bg-primary/5 shadow-glow transition-shadow"
+                  onMouseEnter={() => setQuotePaused(true)}
+                  onMouseLeave={() => setQuotePaused(false)}
+                >
                   <p className="text-lg font-body text-white leading-relaxed">{currentQuote.text}</p>
                   <p className="text-sm text-muted-foreground mt-2">- {currentQuote.author}</p>
                   <div className="mt-6 flex items-center justify-center">

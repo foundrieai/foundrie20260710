@@ -127,6 +127,8 @@ export default function ProductMarketFitPage() {
         enableDevAutofill={enableDevAutofill}
         devNextHref="/phases/gtm"
         devNextLabel="Dev open GTM"
+        devPrevHref="/phases/psf"
+        devPrevLabel="Dev open PSF"
       />
       {(masterProgress >= 80 || enableDevAutofill) && (
         <div className="container mx-auto px-4 pb-24 flex justify-end">

@@ -49,8 +49,24 @@ export async function optimize(input: {
   targetJobTitle: string;
   keywordsJson?: string;
 }) {
-  const keywords = input.keywordsJson ? JSON.parse(input.keywordsJson).keywords : [];
-  const requiredKeywords = keywords.filter((k: any) => k.requirementTier === 'required').map((k: any) => k.canonicalTerm || k.surfaceTerm);
+  // keywordsJson is a stringified extraction result. Support both the current
+  // flat schema ({ hardSkills, softSkills, ... }) and any legacy tiered shape
+  // ({ keywords: [{ requirementTier, canonicalTerm }] }) without throwing.
+  let parsedKeywords: any = {};
+  try {
+    parsedKeywords = input.keywordsJson ? JSON.parse(input.keywordsJson) : {};
+  } catch {
+    parsedKeywords = {};
+  }
+  const requiredKeywords: string[] = Array.isArray(parsedKeywords?.keywords)
+    ? parsedKeywords.keywords
+        .filter((k: any) => k?.requirementTier === 'required')
+        .map((k: any) => k?.canonicalTerm || k?.surfaceTerm)
+        .filter(Boolean)
+    : [
+        ...(Array.isArray(parsedKeywords?.hardSkills) ? parsedKeywords.hardSkills : []),
+        ...(Array.isArray(parsedKeywords?.softSkills) ? parsedKeywords.softSkills : []),
+      ].filter(Boolean);
 
   // --- CALL 1: Optimized Resume Rewrite (Plain Text) ---
   const rewriteResponse = await ai.generate({

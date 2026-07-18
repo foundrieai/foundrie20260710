@@ -128,6 +128,8 @@ export default function GrowthPage() {
         enableDevAutofill={enableDevAutofill}
         devNextHref="/phases/exit"
         devNextLabel="Dev open Exit"
+        devPrevHref="/phases/gtm"
+        devPrevLabel="Dev open GTM"
       />
     </>
   );

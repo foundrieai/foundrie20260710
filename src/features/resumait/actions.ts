@@ -112,17 +112,29 @@ export async function optimize(input: any): Promise<ActionResponse<any>> {
       });
       return { success: true, data };
     }
-    const parsed = input.extractedKeywordsJson ? JSON.parse(input.extractedKeywordsJson) : extractKeywordData(input.jobDescription || '');
-    return {
-      success: true,
-      data: {
-        optimizedResumeText: buildOptimizedResume(input.resume || input.resumeText, input.jobTitle || input.targetJobTitle, parsed),
-        summary: { keywordsAdded: parsed.hardSkills || [], sectionsModified: ['Summary', 'Skills'], estimatedScoreImprovement: 12 },
-      },
-    };
+    return { success: true, data: buildFallbackOptimization(input) };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
+    // Never leave the Rewrite button dead: if the AI path throws for any reason,
+    // fall back to the deterministic optimizer so the user always gets a result.
+    try {
+      return { success: true, data: buildFallbackOptimization(input) };
+    } catch (fallbackError) {
+      return { success: false, error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError) };
+    }
   }
+}
+
+function buildFallbackOptimization(input: any) {
+  let parsed: any;
+  try {
+    parsed = input.extractedKeywordsJson ? JSON.parse(input.extractedKeywordsJson) : extractKeywordData(input.jobDescription || '');
+  } catch {
+    parsed = extractKeywordData(input.jobDescription || '');
+  }
+  return {
+    optimizedResumeText: buildOptimizedResume(input.resume || input.resumeText, input.jobTitle || input.targetJobTitle, parsed),
+    summary: { keywordsAdded: parsed.hardSkills || [], sectionsModified: ['Summary', 'Skills'], estimatedScoreImprovement: 12 },
+  };
 }
 
 export async function polish(input: {
