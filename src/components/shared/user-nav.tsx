@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import { isAdminUser } from "@/lib/entitlements";
 import {
   Avatar,
   AvatarFallback,
@@ -44,7 +45,7 @@ export function UserNav() {
     if (user) {
       user.getIdTokenResult(true).then((idTokenResult) => {
         const claims = idTokenResult.claims;
-        setIsAdmin(claims.admin === true || user.email === 'hello@thesiliconhill.com');
+        setIsAdmin(claims.admin === true || isAdminUser(user));
       });
     } else {
       setIsAdmin(false);

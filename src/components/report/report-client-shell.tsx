@@ -35,6 +35,7 @@ import { Loader2, RefreshCw, Search, MessageSquare, Wand2, Edit2, Check, X as Cl
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { sectionHeadings, businessQuotes, progressMessages } from '@/lib/report-helpers';
+import { isAdminUser } from '@/lib/entitlements';
 import { DeepDiveSheet } from './deep-dive-sheet';
 import { deepDiveAnalysis } from '@/ai/flows/deep-dive-analysis';
 import { cn } from '@/lib/utils';
@@ -128,7 +129,7 @@ export function ReportClientShell({ report: initialReport }: { report: Report })
   useEffect(() => {
     if (user) {
       user.getIdTokenResult().then(token => {
-        if (token.claims.admin || user.email === 'hello@thesiliconhill.com') {
+        if (token.claims.admin || isAdminUser(user)) {
           setIsAdmin(true);
         }
       });

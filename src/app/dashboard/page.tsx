@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ReportCard } from '@/components/dashboard/report-card';
 import { FounderMomentum } from '@/components/dashboard/founder-momentum';
+import { isAdminUser } from '@/lib/entitlements';
 import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
 import { CrossPromoCard } from '@/components/shared/cross-promo-card';
 import { DASHBOARD_BRANDFORGE_PROMO } from '@/lib/cross-promotions';
@@ -45,7 +46,6 @@ function StatCard({ title, value, icon }: { title: string; value: string; icon: 
   );
 }
 
-const adminEmails = new Set(['hello@thesiliconhill.com', 'RobertKWilliams.DC@gmail.com']);
 
 type SortOption = 'newest' | 'oldest' | 'highest-score' | 'lowest-score';
 
@@ -232,7 +232,7 @@ function DashboardPageInner() {
   const IDEAS_PER_PAGE = 6;
   const [visibleCount, setVisibleCount] = useState(IDEAS_PER_PAGE);
 
-  const isAdmin = !!user && (adminEmails.has(user.email || '') || (user as any)?.admin === true);
+  const isAdmin = isAdminUser(user);
   const effectiveAdmin = isAdmin && !viewAsUser;
 
   useEffect(() => {

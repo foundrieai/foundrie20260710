@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { platformTools } from "@/lib/platform";
+import { isAdminUser } from "@/lib/entitlements";
 import Link from "next/link";
 import { User, BarChart3, FileText, ArrowRight, Database, ShieldCheck, Wrench } from "lucide-react";
 
@@ -30,13 +31,13 @@ function AdminStatCard({ title, value, icon, isLoading }: { title: string; value
 export default function AdminPage() {
     const firestore = useFirestore();
     const { user } = useUser();
-    const isAdminUser = user?.email === 'hello@thesiliconhill.com' || user?.email === 'RobertKWilliams.DC@gmail.com' || (user as any)?.admin === true;
+    const isAdminAccount = isAdminUser(user);
 
     // FIX 2: Guard query construction with authenticated user
     const usersQuery = useMemoFirebase(() => {
-        if (!firestore || !user || !isAdminUser) return null;
+        if (!firestore || !user || !isAdminAccount) return null;
         return query(collection(firestore, 'users'), orderBy('createdAt', 'desc'));
-    }, [firestore, user, isAdminUser]);
+    }, [firestore, user, isAdminAccount]);
 
     const { data: users, isLoading: isUsersLoading } = useCollection<UserProfileData>(usersQuery);
 

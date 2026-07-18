@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { doc } from 'firebase/firestore';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { useResetPassword } from '@/firebase/auth';
+import { isAdminUser } from '@/lib/entitlements';
 import type { User as UserProfileData } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,8 +36,8 @@ export default function AdminUserProfilePage() {
   const [formattedDate, setFormattedDate] = useState<string>('N/A');
 
   const userProfileRef = useMemoFirebase(() => {
-    const isAdminUser = user?.email === 'hello@thesiliconhill.com' || user?.email === 'RobertKWilliams.DC@gmail.com' || (user as any)?.admin === true;
-    if (!firestore || !user || !params.userId || (!isAdminUser && user.uid !== params.userId)) return null;
+    const isAdminAccount = isAdminUser(user);
+    if (!firestore || !user || !params.userId || (!isAdminAccount && user.uid !== params.userId)) return null;
     return doc(firestore, 'users', params.userId);
   }, [firestore, user, params.userId]);
 

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/shared/logo';
 import { UserNav } from '@/components/shared/user-nav';
 import { useUser } from '@/firebase';
+import { isAdminUser } from '@/lib/entitlements';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
@@ -29,7 +30,7 @@ export const AppHeader = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const isMarketingRoute =
     pathname === '/' || marketingPrefixes.some((prefix) => prefix !== '/' && pathname.startsWith(prefix));
-  const isAdmin = user?.email === 'hello@thesiliconhill.com' || user?.email === 'RobertKWilliams.DC@gmail.com' || (user as any)?.admin === true;
+  const isAdmin = isAdminUser(user);
 
   useEffect(() => {
     const handleScroll = () => {

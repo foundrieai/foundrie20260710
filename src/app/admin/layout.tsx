@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { isAdminUser } from '@/lib/entitlements';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -25,7 +26,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     // Force refresh of the token to get the latest custom claims
     user.getIdTokenResult(true).then((idTokenResult) => {
       const claims = idTokenResult.claims;
-      if (claims.admin === true || user.email === 'hello@thesiliconhill.com') {
+      if (claims.admin === true || isAdminUser(user)) {
         setIsAdmin(true);
       } else {
         // If not an admin, we don't redirect, we just show an "Access Denied" message.
