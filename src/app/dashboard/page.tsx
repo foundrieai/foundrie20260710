@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ReportCard } from '@/components/dashboard/report-card';
+import { FounderMomentum } from '@/components/dashboard/founder-momentum';
 import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
 import { CrossPromoCard } from '@/components/shared/cross-promo-card';
 import { DASHBOARD_BRANDFORGE_PROMO } from '@/lib/cross-promotions';
@@ -12,7 +13,7 @@ import { BarChart, CheckCircle2, Lightbulb, Search, ListFilter, Loader2, Chevron
 import { Input } from '@/components/ui/input';
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import type { Report, User as UserProfileData } from '@/lib/types';
+import type { Report, User as UserProfileData, EvidenceItem, DecisionLogEntry } from '@/lib/types';
 import { calculateOverallScore } from '@/lib/report-helpers';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -267,6 +268,18 @@ function DashboardPageInner() {
 
   const { data: reports, isLoading: isReportsLoading } = useCollection<Report>(reportsQuery);
 
+  const evidenceQuery = useMemoFirebase(
+    () => (user && firestore ? collection(firestore, 'users', user.uid, 'evidence') : null),
+    [firestore, user]
+  );
+  const { data: evidence } = useCollection<EvidenceItem>(evidenceQuery, { suppressGlobalPermissionError: true });
+
+  const decisionsQuery = useMemoFirebase(
+    () => (user && firestore ? collection(firestore, 'users', user.uid, 'decisions') : null),
+    [firestore, user]
+  );
+  const { data: decisions } = useCollection<DecisionLogEntry>(decisionsQuery, { suppressGlobalPermissionError: true });
+
   const usersQuery = useMemoFirebase(() => {
     if (!firestore || !user || !isAdmin) return null;
     return collection(firestore, 'users');
@@ -396,6 +409,8 @@ function DashboardPageInner() {
           <StatCard title="Ideas Validated" value={reports?.length.toString() || '0'} icon={<BarChart className="text-primary h-6 w-6" />} />
           <StatCard title="Average Score" value={`${averageScore} / 10`} icon={<Star className="text-primary h-6 w-6" />} />
         </div>
+
+        <FounderMomentum reports={reports} evidence={evidence} decisions={decisions} />
 
         <Card className="glass-card mb-8 flex flex-col gap-5 p-6 bg-primary/5 border-primary/20 sm:flex-row sm:items-center sm:justify-between">
           <div>
