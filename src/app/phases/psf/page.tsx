@@ -94,8 +94,9 @@ function ProblemSolutionFitPageInner() {
   }
 
   // Paid gate: the validation report is free, but the post-validation journey
-  // (psf→exit) requires a paid plan. Admins pass; dev builds are never walled.
-  const phaseLocked = !canAccessPhases(user, userProfile) && process.env.NODE_ENV === 'production';
+  // (psf→exit) requires a paid plan once plan gating is enabled. Admins pass;
+  // gating is a no-op until NEXT_PUBLIC_PLAN_GATING=on (no billing exists yet).
+  const phaseLocked = !canAccessPhases(user, userProfile);
   if (phaseLocked) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
