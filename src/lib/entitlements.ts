@@ -15,7 +15,7 @@
  * grandfathering for existing accounts at that point).
  */
 
-export const ADMIN_EMAILS = ['hello@thesiliconhill.com', 'robertkwilliams.dc@gmail.com'];
+export const ADMIN_EMAILS = ['hello@thesiliconhill.com', 'hello@foundrieai.com', 'robertkwilliams.dc@gmail.com'];
 
 /** Master switch. Gating does nothing until this is turned on. */
 export function isPlanGatingEnabled(): boolean {
