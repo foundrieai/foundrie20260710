@@ -3,6 +3,7 @@
 import React from 'react';
 import { ArrowUpRight, BarChart3, CalendarDays, Flame, Inbox, Palette, Radio, ShieldCheck, Sparkles, Target } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
+import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
 import { AnalyticsPage } from './pages/Analytics';
 import { BrandGuidesPage } from './pages/BrandGuides';
 import { CalendarPage } from './pages/Calendar';
@@ -201,7 +202,7 @@ function SettingsPage() {
 }
 
 function AppContent() {
-  const { currentPath, loading, setCurrentPath } = useApp();
+  const { currentPath, loading, setCurrentPath, currentIdentity } = useApp();
 
   const page = (() => {
     switch (currentPath) {
@@ -242,6 +243,7 @@ function AppContent() {
       <Layout currentPath={currentPath} onNavigate={setCurrentPath}>
         {page}
       </Layout>
+      <IdeamaitAssistant context={{ companyName: currentIdentity?.displayName, currentPhaseName: 'BrandForge' }} />
     </div>
   );
 }

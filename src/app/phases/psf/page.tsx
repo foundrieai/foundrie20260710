@@ -14,9 +14,11 @@ import { Button } from '@/components/ui/button';
 import { getCompletedPhaseItems, getPhaseProgress, getRemainingPhaseItems } from '@/lib/phases/progress';
 import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
 import { canAccessPhases } from '@/lib/entitlements';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 
 function ProblemSolutionFitPageInner() {
   const { user, isUserLoading } = useUser();
+  useRequireAuth();
   const firestore = useFirestore();
   const searchParams = useSearchParams();
   const routeReportId = searchParams.get('reportId');
@@ -50,7 +52,7 @@ function ProblemSolutionFitPageInner() {
 
   const isLoading = isUserLoading || isMetaLoading || isPhaseLoading || isLinkedReportLoading || isReportsLoading;
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

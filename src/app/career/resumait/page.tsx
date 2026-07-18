@@ -1,6 +1,7 @@
 import ResumeOptimizerPage from '@/components/resume-optimizer-page';
 import { FaqSection } from '@/components/shared/faq-section';
 import { resumaitFaqs } from '@/lib/faqs';
+import { AuthGate } from '@/components/shared/auth-gate';
 import {
   counselorChat,
   getInitialAnalysis,
@@ -19,25 +20,27 @@ export const metadata = {
 
 export default function ResumaitPage() {
   return (
-    <main className="resumait-skin min-h-[calc(100vh-74px)] px-4 py-6 md:px-8">
-      <ResumeOptimizerPage
-        actions={{
-          optimize,
-          getResumeScore,
-          getInitialAnalysis,
-          runNewKeywordExtraction,
-          counselorChat,
-          runSpellCheck,
-          runGenerateCoverLetter,
-        }}
-      />
-      <FaqSection
-        eyebrow="Resumait FAQ"
-        heading="Common questions about Resumait."
-        subheading="How resume optimization, ATS scoring, and career guidance work inside Foundrie AI."
-        items={resumaitFaqs}
-        className="-mx-4 md:-mx-8"
-      />
-    </main>
+    <AuthGate>
+      <main className="resumait-skin min-h-[calc(100vh-74px)] px-4 py-6 md:px-8">
+        <ResumeOptimizerPage
+          actions={{
+            optimize,
+            getResumeScore,
+            getInitialAnalysis,
+            runNewKeywordExtraction,
+            counselorChat,
+            runSpellCheck,
+            runGenerateCoverLetter,
+          }}
+        />
+        <FaqSection
+          eyebrow="Resumait FAQ"
+          heading="Common questions about Resumait."
+          subheading="How resume optimization, ATS scoring, and career guidance work inside Foundrie AI."
+          items={resumaitFaqs}
+          className="-mx-4 md:-mx-8"
+        />
+      </main>
+    </AuthGate>
   );
 }

@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { collection, doc } from 'firebase/firestore';
+import { ShareAccessDialog } from '@/components/portfolio/share-access-dialog';
+import { Users } from 'lucide-react';
 import {
   Archive,
   ArrowRight,
@@ -120,6 +122,7 @@ function PortfolioMapInner() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -249,12 +252,19 @@ function PortfolioMapInner() {
             See how phase progress, Vault evidence, and founder decisions line up across the LaunchCode journey.
           </p>
         </div>
-        <Button asChild className="shadow-button-primary">
-          <Link href={activePhase.href === '#' ? '/phases/growth' : activePhase.href}>
-            Continue current phase <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button variant="outline" onClick={() => setShareOpen(true)}>
+            <Users className="mr-2 h-4 w-4" /> Share access
+          </Button>
+          <Button asChild className="shadow-button-primary">
+            <Link href={activePhase.href === '#' ? '/phases/growth' : activePhase.href}>
+              Continue current phase <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      <ShareAccessDialog open={shareOpen} onOpenChange={setShareOpen} />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="glass-card p-5">

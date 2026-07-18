@@ -10,36 +10,54 @@ service cloud.firestore {
       );
     }
 
+    // Read-only investor/mentor access. The owner adds a viewer by email; a doc
+    // keyed by that lowercased email under users/{userId}/viewers grants the
+    // holder READ access to the owner's LaunchCode files. Never grants write.
+    function isViewer(userId) {
+      return request.auth != null && request.auth.token.email != null &&
+        exists(/databases/$(database)/documents/users/$(userId)/viewers/$(request.auth.token.email));
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
 
     match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read: if (request.auth != null && (request.auth.uid == userId || isAdmin())) || isViewer(userId);
       allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
-    match /users/{userId}/journey/{document=**} {
+    // Owner/admin manage the viewer allow-list; viewers never read this list.
+    match /users/{userId}/viewers/{viewerEmail} {
       allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    match /users/{userId}/journey/{document=**} {
+      allow read:  if (request.auth != null && (request.auth.uid == userId || isAdmin())) || isViewer(userId);
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
     match /users/{userId}/evidence/{evidenceId} {
-      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read:  if (request.auth != null && (request.auth.uid == userId || isAdmin())) || isViewer(userId);
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
     match /users/{userId}/decisions/{decisionId} {
-      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read:  if (request.auth != null && (request.auth.uid == userId || isAdmin())) || isViewer(userId);
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
     match /users/{userId}/reports/{reportId} {
-      // Owner and admins always read. Everyone else only if the owner has
-      // explicitly enabled sharing (isShared == true) — an unlisted link.
+      // Owner and admins always read; invited viewers read; everyone else only
+      // if the owner enabled an unlisted link (isShared == true).
       allow read: if (request.auth != null && (request.auth.uid == userId || isAdmin()))
+                  || isViewer(userId)
                   || resource.data.isShared == true;
       allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow create: if request.auth != null;
     }
 
+    // Resumait resumes are NOT part of the LaunchCode share — owner/admin only.
     match /users/{userId}/resumes/{resumeId} {
       allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }

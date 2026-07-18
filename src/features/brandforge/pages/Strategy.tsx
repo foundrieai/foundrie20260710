@@ -292,6 +292,19 @@ export const StrategyPage: React.FC = () => {
           ))}
         </div>
 
+        {/* Cross-tool nudge → LaunchCode (on-theme, BrandForge light palette) */}
+        <div className="flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-700">
+            Building a company behind this brand? <span className="font-semibold text-slate-900">LaunchCode</span> takes it from idea to validated and investor-ready.
+          </p>
+          <a
+            href="/company/launchcode"
+            className="whitespace-nowrap text-sm font-bold text-blue-600 transition-colors hover:text-blue-800"
+          >
+            Enter LaunchCode &rarr;
+          </a>
+        </div>
+
         {/* Tabs */}
         <div className="flex space-x-8 border-b border-slate-200 px-4">
           {['STRATEGY', '30-DAY CALENDAR', '90-DAY ROADMAP', 'OPPORTUNITIES'].map(tab => (

@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, ClipboardList, Lightbulb, LogOut, Map, Puzzle
 import { MagneticButton } from '@/components/shared/magnetic-button';
 import { FaqSection } from '@/components/shared/faq-section';
 import { launchCodeFaqs } from '@/lib/faqs';
+import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
 
 const launchCodeEntries = [
   {
@@ -129,6 +130,7 @@ export default function LaunchCodeHubPage() {
         subheading="How the founder operating system works, from your first idea to a fundable company."
         items={launchCodeFaqs}
       />
+      <IdeamaitAssistant context={{ currentPhaseName: 'LaunchCode' }} />
     </main>
   );
 }

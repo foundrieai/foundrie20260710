@@ -4,8 +4,11 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ReportCard } from '@/components/dashboard/report-card';
+import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
+import { CrossPromoCard } from '@/components/shared/cross-promo-card';
+import { DASHBOARD_BRANDFORGE_PROMO } from '@/lib/cross-promotions';
 import { MagneticButton } from '@/components/shared/magnetic-button';
-import { BarChart, CheckCircle2, Lightbulb, Search, ListFilter, Loader2, ChevronDown, Star, Shield, Users, Database, ArrowRight, Wrench, Activity, Eye, LayoutGrid } from 'lucide-react';
+import { BarChart, CheckCircle2, Lightbulb, Search, ListFilter, Loader2, ChevronDown, Star, Shield, Users, Database, ArrowRight, Wrench, Activity, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
@@ -378,10 +381,7 @@ function DashboardPageInner() {
 
         {/* YOUR PRODUCTS — every subscribed suite in one place */}
         <section className="mb-12">
-          <div className="mb-5 flex items-center gap-2">
-            <LayoutGrid className="h-4 w-4 text-white/45" />
-            <h2 className="text-xs font-bold uppercase tracking-[0.22em] text-white/45">Your products</h2>
-          </div>
+          <h2 className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-white/45">Your products</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <ProductCard tool={launchCodeTool} activity={launchCodeActivity} />
             <ProductCard tool={resumaitTool} activity={resumaitActivity} />
@@ -390,10 +390,7 @@ function DashboardPageInner() {
         </section>
 
         {/* YOUR LAUNCHCODE WORKSPACE */}
-        <div className="mb-5 flex items-center gap-2">
-          <BarChart className="h-4 w-4 text-white/45" />
-          <h2 className="text-xs font-bold uppercase tracking-[0.22em] text-white/45">Your LaunchCode workspace</h2>
-        </div>
+        <h2 className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-white/45">Your LaunchCode workspace</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <StatCard title="Ideas Validated" value={reports?.length.toString() || '0'} icon={<BarChart className="text-primary h-6 w-6" />} />
@@ -414,6 +411,10 @@ function DashboardPageInner() {
             </Button>
           </div>
         </Card>
+
+        {reports && reports.length > 0 && (
+          <CrossPromoCard promo={DASHBOARD_BRANDFORGE_PROMO} className="mb-8" />
+        )}
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-2xl font-bold font-headline">Your Validations</h2>
@@ -489,6 +490,13 @@ function DashboardPageInner() {
           )
         )}
       </main>
+      <IdeamaitAssistant
+        context={{
+          companyName: reports?.[0]?.companyName || 'your venture',
+          startupDescription: reports?.[0]?.description || '',
+          currentPhaseName: 'Dashboard',
+        }}
+      />
     </div>
   );
 }

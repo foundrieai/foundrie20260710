@@ -1,6 +1,7 @@
 import { BrandForgeApp } from '@/features/brandforge/BrandForgeApp';
 import { FaqSection } from '@/components/shared/faq-section';
 import { brandForgeFaqs } from '@/lib/faqs';
+import { AuthGate } from '@/components/shared/auth-gate';
 
 export const metadata = {
   title: 'BrandForge',
@@ -10,7 +11,7 @@ export const metadata = {
 
 export default function BrandForgePage() {
   return (
-    <>
+    <AuthGate>
       <BrandForgeApp />
       <FaqSection
         eyebrow="BrandForge FAQ"
@@ -18,6 +19,6 @@ export default function BrandForgePage() {
         subheading="How the AI branding strategist helps you build a professional presence that sounds like you."
         items={brandForgeFaqs}
       />
-    </>
+    </AuthGate>
   );
 }

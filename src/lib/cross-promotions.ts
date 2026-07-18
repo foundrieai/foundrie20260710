@@ -55,6 +55,27 @@ export const RESUMAIT_BRANDFORGE_PROMO: CrossPromo = {
   body: 'Your resume is polished — now extend it into a presence that brings the next opportunity to you. BrandForge builds the personal brand around the career you just engineered.',
 };
 
+/**
+ * Dashboard: once a founder has validated at least one idea, nudge them toward
+ * building presence — the "you have built it, now make the market notice" moment.
+ */
+export const DASHBOARD_BRANDFORGE_PROMO: CrossPromo = {
+  id: 'dashboard-brandforge',
+  tool: brandForgeTool,
+  eyebrow: 'Bridge to BrandForge',
+  headline: 'You have validated the idea. Now make the market notice.',
+  body: 'BrandForge turns your validated company into a deliberate presence — positioning, narrative, and a publishing cadence that brings the right buyers and investors to you.',
+};
+
+/** BrandForge → LaunchCode, for brand-builders whose brand is a company in the making. */
+export const BRANDFORGE_LAUNCHCODE_PROMO: CrossPromo = {
+  id: 'brandforge-launchcode',
+  tool: launchCodeTool,
+  eyebrow: 'Bridge to LaunchCode',
+  headline: 'A brand is strongest with a fundable company behind it.',
+  body: 'If the brand you are building is a company in the making, LaunchCode takes it from idea to validated and investor-ready — the substance your presence points to.',
+};
+
 // ---------------------------------------------------------------------------
 // Per-user dismissal. Scoped to the signed-in user and cleared on sign-out, so
 // one person's dismissals never suppress prompts for the next user on a shared

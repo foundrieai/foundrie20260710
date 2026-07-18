@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { PhaseView } from '@/components/phases/phase-view';
 import { gtmPhaseData } from '@/lib/phases/gtm-data';
@@ -12,6 +13,7 @@ import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
 
 export default function GoToMarketPage() {
   const { user, isUserLoading } = useUser();
+  useRequireAuth();
   const firestore = useFirestore();
   
   const journeyMetaRef = useMemoFirebase(() => (user && firestore ? doc(firestore, 'users', user.uid, 'journey', 'meta') : null), [user, firestore]);
@@ -34,7 +36,7 @@ export default function GoToMarketPage() {
 
   const isLoading = isUserLoading || isMetaLoading || isPhaseLoading;
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
