@@ -10,13 +10,11 @@ import {
   ArrowRight,
   CheckCircle2,
   ClipboardList,
-  Gauge,
   Loader2,
   Lock,
   Map as MapIcon,
   ShieldAlert,
-  Target,
-  TrendingUp
+  Target
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -362,10 +360,7 @@ function PortfolioMapInner() {
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="glass-card p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <Gauge className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold font-headline">Next Best Move</h2>
-          </div>
+          <h2 className="text-xl font-bold font-headline">Next Best Move</h2>
           <p className="text-muted-foreground">{signalForPhase(activePhase)}</p>
           <Button asChild variant="outline">
             <Link href={activePhase.href === '#' ? '/phases/growth' : activePhase.href}>Go to {activePhase.name}</Link>
@@ -373,10 +368,7 @@ function PortfolioMapInner() {
         </Card>
 
         <Card className="glass-card p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold font-headline">Portfolio Context</h2>
-          </div>
+          <h2 className="text-xl font-bold font-headline">Portfolio Context</h2>
           <div className="text-sm text-muted-foreground space-y-2">
             <p>Company: {journeyMeta?.companyName || 'Your Startup'}</p>
             <p>{journeyMeta?.startupDescription || 'Validation context will appear here after a report starts the journey.'}</p>
