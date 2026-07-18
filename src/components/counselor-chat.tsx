@@ -22,16 +22,18 @@ interface CounselorChatProps {
     jobDescription: string;
     onResumeUpdate: (newResume: string) => void;
     chatAction: (input: any) => Promise<any>;
+    /** Optional automated first greeting shown as the assistant's opening message. */
+    introMessage?: string;
 }
 
 /**
  * @fileOverview IDEAMAIT - Floating executive career counselor widget with Voice Engine and Document Upload.
  * Implements CAPITALIDEAS design system with brand red (#FF0033) accents.
  */
-export function CounselorChat({ resumeText, jobDescription, onResumeUpdate, chatAction }: CounselorChatProps) {
+export function CounselorChat({ resumeText, jobDescription, onResumeUpdate, chatAction, introMessage }: CounselorChatProps) {
     const { user, isUserLoading } = useUser();
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>(introMessage ? [{ role: 'model', content: introMessage }] : []);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
@@ -229,7 +231,7 @@ export function CounselorChat({ resumeText, jobDescription, onResumeUpdate, chat
     };
 
     const resetHistory = () => {
-        setMessages([]);
+        setMessages(introMessage ? [{ role: 'model', content: introMessage }] : []);
         setHasError(false);
         setStagedFile(null);
         toast({ title: "Memory Wiped", description: "IDEAMAIT context has been cleared." });

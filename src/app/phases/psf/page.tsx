@@ -13,6 +13,7 @@ import type { Report } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { getCompletedPhaseItems, getPhaseProgress, getRemainingPhaseItems } from '@/lib/phases/progress';
 import { readPhaseCache, writePhaseCache } from '@/lib/phase-cache';
+import { canAccessPhases } from '@/lib/entitlements';
 
 function ProblemSolutionFitPageInner() {
   const { user, isUserLoading } = useUser();
@@ -31,6 +32,9 @@ function ProblemSolutionFitPageInner() {
 
   const reportsRef = useMemoFirebase(() => (user && firestore && !routeReportId ? collection(firestore, 'users', user.uid, 'reports') : null), [firestore, routeReportId, user]);
   const { data: reports, isLoading: isReportsLoading } = useCollection<Report>(reportsRef, { suppressGlobalPermissionError: true });
+
+  const userProfileRef = useMemoFirebase(() => (user && firestore ? doc(firestore, 'users', user.uid) : null), [user, firestore]);
+  const { data: userProfile } = useDoc<any>(userProfileRef, { suppressGlobalPermissionError: true });
 
   const [localState, setLocalState] = useState<any>({});
 
@@ -82,6 +86,33 @@ function ProblemSolutionFitPageInner() {
             </Button>
             <Button asChild variant="outline">
               <Link href="/new">Go to Validation</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Paid gate: the validation report is free, but the post-validation journey
+  // (psf→exit) requires a paid plan. Admins pass; dev builds are never walled.
+  const phaseLocked = !canAccessPhases(user, userProfile) && process.env.NODE_ENV === 'production';
+  if (phaseLocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="max-w-xl text-center space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm font-mono uppercase tracking-wider text-primary">Upgrade required</p>
+            <h1 className="text-4xl font-bold font-headline">Unlock the full LaunchCode journey</h1>
+            <p className="text-muted-foreground">
+              Your validation report stays free forever. To work through Problem-Solution Fit and the rest of the founder journey — with Ideamait guiding every phase — upgrade your plan.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
+            <Button asChild className="shadow-button-primary">
+              <Link href="/pricing">See plans</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/dashboard">Back to dashboard</Link>
             </Button>
           </div>
         </div>
@@ -147,7 +178,9 @@ function ProblemSolutionFitPageInner() {
     deliverablesRemaining: getRemainingList('deliverables'),
     milestonesMet,
     milestonesRemaining,
-    overallProgressPct: Math.round(masterProgress)
+    overallProgressPct: Math.round(masterProgress),
+    location: contextReport?.location,
+    industry: contextReport?.industry,
   };
 
   // Compute unlocked phases

@@ -61,12 +61,19 @@ export function IdeamaitAssistant({ context }: { context: IdeamaitAssistantConte
     }
   };
 
+  const company = context.companyName && context.companyName !== 'your venture' ? context.companyName : 'your venture';
+  const intro =
+    context.currentPhaseName === 'Ideation'
+      ? `I am Ideamait. I have pressure-tested hundreds of founder ideas. Tell me the space you are drawn to — or point me at one of the ideas on screen — and I will tell you where the real opportunity sits and where it will break. One question at a time. Let us find the one worth your next few years.`
+      : `I am Ideamait, your operator through ${context.currentPhaseName || 'this stage'}. I already know where ${company} stands. Tell me where you are stuck, or ask what to prioritize — I will cut straight to the next move that actually matters.`;
+
   return (
     <CounselorChat
       resumeText={context.startupDescription || ''}
       jobDescription={context.currentPhaseName || ''}
       onResumeUpdate={() => {}}
       chatAction={chatAction}
+      introMessage={intro}
     />
   );
 }

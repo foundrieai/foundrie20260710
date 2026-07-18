@@ -189,9 +189,6 @@ function AdminCommandCenter({
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="rounded-full border-white/20 bg-black/20 px-6 text-white hover:bg-white/10">
-                <Link href="/admin">User Data</Link>
-              </Button>
             </div>
           </div>
           <div>
@@ -398,24 +395,25 @@ function DashboardPageInner() {
           <h2 className="text-xs font-bold uppercase tracking-[0.22em] text-white/45">Your LaunchCode workspace</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <StatCard title="Ideas Validated" value={reports?.length.toString() || '0'} icon={<BarChart className="text-primary h-6 w-6" />} />
           <StatCard title="Average Score" value={`${averageScore} / 10`} icon={<Star className="text-primary h-6 w-6" />} />
-          <Card className="glass-card p-6 flex flex-col justify-between gap-4 bg-primary/5 border-primary/20">
-            <div>
-              <p className="text-muted-foreground">Journey Entry</p>
-              <p className="text-xl font-bold font-headline text-primary">Start with Ideation or Validation</p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Button asChild className="shadow-button-primary w-full">
-                <Link href="/ideation"><Lightbulb className="mr-2 h-4 w-4" /> Ideation</Link>
-              </Button>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/new"><CheckCircle2 className="mr-2 h-4 w-4" /> Validation</Link>
-              </Button>
-            </div>
-          </Card>
         </div>
+
+        <Card className="glass-card mb-8 flex flex-col gap-5 p-6 bg-primary/5 border-primary/20 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">Start something new</p>
+            <p className="text-xl font-bold font-headline text-primary">Generate fresh ideas, or validate one you already have</p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:shrink-0">
+            <Button asChild className="shadow-button-primary">
+              <Link href="/ideation"><Lightbulb className="mr-2 h-4 w-4" /> Ideation</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/new"><CheckCircle2 className="mr-2 h-4 w-4" /> Validation</Link>
+            </Button>
+          </div>
+        </Card>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-2xl font-bold font-headline">Your Validations</h2>

@@ -28,8 +28,9 @@ import { Bot, Loader2, MapPin } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, doc, updateDoc, increment, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, increment, query, where, getDocs, getDoc, limit } from 'firebase/firestore';
 import { generateNameAndTagline } from '@/ai/flows/generate-startup-validation-report';
+import { canCreateReport } from '@/lib/entitlements';
 
 const formSchema = z.object({
   companyName: z.string().optional(),
@@ -126,6 +127,19 @@ function IdeaFormInner() {
           description: 'Redirecting you to your existing validation for this idea.',
         });
         router.push(`/report/${user.uid}/${existingReportId}`);
+        return;
+      }
+
+      // Entitlement gate: the first validation is free; additional validations
+      // require a paid plan. Admins and paid users pass through.
+      const userSnap = await getDoc(doc(firestore, 'users', user.uid));
+      const profile = userSnap.exists() ? userSnap.data() : {};
+      if (!canCreateReport(user, profile)) {
+        toast({
+          title: 'Upgrade to validate more ideas',
+          description: 'Your first validation is on us. Upgrade to run additional validations and unlock the full LaunchCode journey.',
+        });
+        router.push('/pricing');
         return;
       }
 

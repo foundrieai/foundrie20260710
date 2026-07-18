@@ -19,6 +19,9 @@ import { PhaseNavigationRail } from './phase-navigation-rail';
 import { CrossPromoCard } from '@/components/shared/cross-promo-card';
 import { PHASE_CROSS_PROMOS } from '@/lib/cross-promotions';
 import { IdeamaitAssistant } from '@/components/shared/ideamait-assistant';
+import { LocalResourcesButton } from '@/components/phases/local-resources-button';
+import { PhaseOnboarding } from '@/components/phases/phase-onboarding';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 export function PhaseView({
   phaseData,
@@ -189,11 +192,16 @@ export function PhaseView({
       </div>
 
       <div className="mx-auto max-w-6xl space-y-8 px-6 pt-10">
+        <PhaseOnboarding phaseId={phaseData.id} phaseName={phaseData.name} />
         <section className="lc-card p-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl">
-              <p className="lc-eyebrow">
+              <p className="lc-eyebrow inline-flex items-center gap-1.5">
                 Current - Phase {phaseData.journeyPosition} of {phaseData.journeyTotal}{phaseData.id === 'exit' ? ' - Final' : ''}
+                <InfoTooltip
+                  position="inline"
+                  text="LaunchCode runs your company through six founder phases. Complete a phase's activities and exit milestones to unlock the next one. Your progress and evidence are saved as you go."
+                />
               </p>
               <h1 className="mt-3 text-4xl font-bold tracking-normal text-[var(--lc-text)] md:text-5xl">{phaseData.name}</h1>
               <p className="mt-4 text-sm leading-6 text-[var(--lc-text-2)]">{phaseData.tagline}</p>
@@ -382,6 +390,12 @@ export function PhaseView({
                   Review decisions
                 </Link>
               </Button>
+              <LocalResourcesButton
+                companyName={context.companyName}
+                industry={context.industry}
+                startupDescription={context.startupDescription}
+                location={context.location}
+              />
               <Button
                 type="button"
                 onClick={handlePhaseCoach}

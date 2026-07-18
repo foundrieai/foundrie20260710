@@ -44,13 +44,57 @@ export function PitchDeck({ report, onBack }: { report: Report; onBack?: () => v
     toast({ title: 'Link copied to clipboard!' });
   };
 
-  const handleExport = (format: 'PDF' | 'PPT') => {
+  const buildDeckData = () => [
+    { title: report.companyName || 'Company', body: report.tagline || extractContent(report.description, 200), isTitle: true },
+    { title: 'Company Purpose', body: extractContent(report.content?.purpose) },
+    { title: 'The Problem', body: extractContent(report.content?.problem) },
+    { title: 'Our Solution', body: extractContent(report.content?.solution) },
+    { title: 'Why Now?', body: extractContent(report.content?.whyNow) },
+    { title: 'Market Potential', body: extractContent(report.content?.marketSize) },
+    { title: 'Competitive Landscape', body: extractContent(report.content?.competition) },
+    { title: 'Product Roadmap', body: extractContent(report.content?.productRoadmap) },
+    { title: 'Business Model', body: extractContent(report.content?.businessModel) },
+    { title: 'Team & Capability', body: extractContent(report.content?.team) },
+    { title: 'Financial Projections', body: extractContent(report.content?.financials) },
+  ];
+
+  const handleExport = async (format: 'PDF' | 'PPT') => {
     setIsExporting(format);
-    toast({ title: `Preparing ${format} Export...`, description: 'This may take a moment to compress.' });
-    setTimeout(() => {
+    try {
+      if (format === 'PDF') {
+        toast({ title: 'Opening print dialog', description: 'Choose "Save as PDF" as the destination.' });
+        window.print();
+        return;
+      }
+
+      toast({ title: 'Preparing PPTX Export...', description: 'Building your investor deck.' });
+      // Load the heavy pptxgenjs library only when actually exporting.
+      const PptxGenJS = (await import('pptxgenjs')).default;
+      const pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_WIDE';
+
+      buildDeckData().forEach((s) => {
+        const slide = pptx.addSlide();
+        slide.background = { color: '0B0710' };
+        if (s.isTitle) {
+          slide.addText(s.title, { x: 0.5, y: 2.1, w: 12.3, h: 1.6, align: 'center', fontSize: 44, bold: true, color: 'FFFFFF' });
+          slide.addText(s.body, { x: 1, y: 3.8, w: 11.3, h: 2, align: 'center', fontSize: 20, color: 'C9C3CE' });
+          slide.addText('INVESTOR PRESENTATION', { x: 1, y: 5.6, w: 11.3, h: 0.5, align: 'center', fontSize: 12, color: 'FF7A00', charSpacing: 3 });
+        } else {
+          slide.addText(s.title.toUpperCase(), { x: 0.6, y: 0.5, w: 12, h: 0.8, fontSize: 26, bold: true, color: 'FF7A00' });
+          slide.addText(s.body, { x: 0.6, y: 1.6, w: 12.1, h: 5.2, fontSize: 15, color: 'E6E1EA', valign: 'top' });
+        }
+        slide.addText('CONFIDENTIAL & PROPRIETARY. This presentation does not constitute legal, financial, or professional advice.', { x: 0.6, y: 7.05, w: 12.1, h: 0.3, fontSize: 8, color: '6B6673', align: 'center' });
+      });
+
+      const safeName = (report.companyName || 'pitch-deck').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'pitch-deck';
+      await pptx.writeFile({ fileName: `${safeName}-pitch-deck.pptx` });
+      toast({ title: 'Export Complete', description: 'Your PPTX has been downloaded.' });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Export failed', description: e?.message || 'Could not generate the export. Please try again.' });
+    } finally {
       setIsExporting(null);
-      toast({ title: 'Export Complete', description: `Your ${format} has been downloaded.` });
-    }, 2500);
+    }
   };
 
   // Build the slides based on report data

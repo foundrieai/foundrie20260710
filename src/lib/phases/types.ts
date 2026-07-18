@@ -91,6 +91,8 @@ export interface IdeamaitContext {
   currentActivityEvidence?: Record<string, string | number>;
   conversationHistory?: Array<{ role: 'agent' | 'founder'; content: string }>;
   latestFounderOsMetrics?: any;
+  location?: string;
+  industry?: string;
 }
 
 export type ActivityAssessmentSignal = 'insufficient' | 'weak' | 'developing' | 'strong';
