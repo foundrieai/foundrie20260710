@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { AuthForm } from '@/components/auth/auth-form';
+import { AnvilMark } from '@/components/shared/anvil-mark';
 import { useAuthRedirect } from '@/hooks/use-auth-redirect';
 
 const FREE_PLAN_INCLUDES = [
@@ -16,7 +17,7 @@ const FREE_PLAN_INCLUDES = [
 /** A plain-language explainer of exactly what the free account includes. */
 function FreePlanExplainer() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left">
+    <div className="rounded-2xl border border-white/10 bg-black/30 p-6 text-left backdrop-blur-md lg:bg-white/[0.04] lg:p-7">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45">Your free account</p>
         <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-xs font-bold text-white/70">$0 forever</span>
@@ -50,7 +51,8 @@ export default function SignupPage() {
       title="Create an account"
       description="Start validating your ideas in minutes."
       animated
-      aside={<FreePlanExplainer />}
+      brandMark={<AnvilMark />}
+      panel={<FreePlanExplainer />}
     >
       <AuthForm mode="signup" />
     </AuthLayout>
