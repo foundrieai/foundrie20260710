@@ -12,6 +12,8 @@ interface AuthLayoutProps {
   videoUrl?: string;
   /** Use the homepage hero's WebGL molten animation instead of a video/image. */
   animated?: boolean;
+  /** Optional content rendered below the form (e.g. a free-plan explainer). */
+  aside?: React.ReactNode;
 }
 
 export function AuthLayout({
@@ -22,6 +24,7 @@ export function AuthLayout({
   illustrationHint,
   videoUrl,
   animated,
+  aside,
 }: AuthLayoutProps) {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -36,6 +39,7 @@ export function AuthLayout({
               <p className="text-muted-foreground mt-2">{description}</p>
             </div>
             {children}
+            {aside && <div className="mt-8">{aside}</div>}
           </div>
         </GlowContainer>
       </div>

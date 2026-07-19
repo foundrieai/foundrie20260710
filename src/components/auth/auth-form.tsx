@@ -42,6 +42,7 @@ const formSchema = z.object({
 export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const handleGoogleSignIn = useGoogleSignIn();
   const emailSignIn = useEmailSignIn();
   const emailSignUp = useEmailSignUp();
@@ -134,8 +135,21 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
                 <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
                     </FormControl>
+                    <div className="flex items-center space-x-2 pt-1">
+                      <Checkbox
+                        id="show-password"
+                        checked={showPassword}
+                        onCheckedChange={(checked) => setShowPassword(checked === true)}
+                      />
+                      <label
+                        htmlFor="show-password"
+                        className="cursor-pointer select-none text-sm font-medium text-muted-foreground"
+                      >
+                        Show password
+                      </label>
+                    </div>
                     <FormMessage />
                 </FormItem>
                 )}
