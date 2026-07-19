@@ -43,9 +43,11 @@ export function AuthLayout({
               <h1 className="text-3xl font-bold font-headline">{title}</h1>
               <p className="text-muted-foreground mt-2">{description}</p>
             </div>
+            {/* Mobile: the value prop sits ABOVE the form (the right panel is
+                hidden here) so the benefits are seen before the form, never
+                buried below it. */}
+            {panel && <div className="mb-8 lg:hidden">{panel}</div>}
             {children}
-            {/* Mobile: the value prop follows the form (the right panel is hidden). */}
-            {panel && <div className="mt-8 lg:hidden">{panel}</div>}
           </div>
         </GlowContainer>
       </div>
