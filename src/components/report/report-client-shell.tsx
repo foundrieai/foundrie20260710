@@ -806,11 +806,20 @@ Zenith's purpose is deeply intertwined with its "Trust-AI-Community Flywheel": a
         <PitchDeck report={report} onBack={() => setActiveModule('prototyping')} />
       )}
 
-      {activeModule === 'problem_solution_fit_extended' && <ProblemSolutionFitExtended Context={projectContext} />}
-      {activeModule === 'product_market_fit' && <ProductMarketFit Context={projectContext} />}
-      {activeModule === 'go_to_market_fit' && <GoToMarketFitView Context={projectContext} />}
-      {activeModule === 'growth_scale' && <GrowthScaleView Context={projectContext} />}
-      {activeModule === 'maturity_exit' && <MaturityExitView Context={projectContext} />}
+      {/* These phase views are built with light-theme utility classes; the
+          report-skin wrapper is what converts them to the platform's dark theme.
+          Without it they render as white-on-white. */}
+      {['problem_solution_fit_extended', 'product_market_fit', 'go_to_market_fit', 'growth_scale', 'maturity_exit'].includes(activeModule) && (
+        <div className="report-print-container report-skin">
+          <div className="container mx-auto px-4 py-8">
+            {activeModule === 'problem_solution_fit_extended' && <ProblemSolutionFitExtended Context={projectContext} />}
+            {activeModule === 'product_market_fit' && <ProductMarketFit Context={projectContext} />}
+            {activeModule === 'go_to_market_fit' && <GoToMarketFitView Context={projectContext} />}
+            {activeModule === 'growth_scale' && <GrowthScaleView Context={projectContext} />}
+            {activeModule === 'maturity_exit' && <MaturityExitView Context={projectContext} />}
+          </div>
+        </div>
+      )}
 
       {activeModule === 'validation' && (
         <>
