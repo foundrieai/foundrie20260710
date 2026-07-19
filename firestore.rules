@@ -3,11 +3,16 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
+      // Email comparison is case-sensitive in rules, but providers return the
+      // address in canonical (lowercase) form — so compare lowercase-to-lowercase.
       return request.auth != null && (
-        request.auth.token.email == 'hello@thesiliconhill.com' ||
-        request.auth.token.email == 'hello@foundrieai.com' ||
-        request.auth.token.email == 'RobertKWilliams.DC@gmail.com' ||
-        (request.auth.token.admin == true)
+        request.auth.token.admin == true ||
+        (request.auth.token.email != null &&
+          request.auth.token.email.lower() in [
+            'hello@thesiliconhill.com',
+            'hello@foundrieai.com',
+            'robertkwilliams.dc@gmail.com'
+          ])
       );
     }
 
