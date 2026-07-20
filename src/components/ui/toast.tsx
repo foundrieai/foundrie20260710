@@ -29,7 +29,10 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: "border bg-background text-foreground",
+        // Explicit opaque surface: the global `.bg-background { transparent
+        // !important }` rule (for page-level backgrounds) would otherwise make
+        // toasts see-through and unreadable, so pin an opaque color that beats it.
+        default: "border border-white/12 !bg-[#1a1824] text-foreground backdrop-blur-none",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
       },

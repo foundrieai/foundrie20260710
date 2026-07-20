@@ -49,7 +49,7 @@ export default function SignupPage() {
   return (
     <AuthLayout
       title="Create an account"
-      description="Start validating your ideas in minutes."
+      description="Start forging your own future today."
       animated
       brandMark={<AnvilMark />}
       panel={<FreePlanExplainer />}
