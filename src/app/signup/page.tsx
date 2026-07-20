@@ -17,7 +17,7 @@ const FREE_PLAN_INCLUDES = [
 /** A plain-language explainer of exactly what the free account includes. */
 function FreePlanExplainer() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/30 p-6 text-left backdrop-blur-md lg:bg-white/[0.04] lg:p-7">
+    <div className="rounded-2xl border border-white/10 bg-black/30 p-6 text-left backdrop-blur-md lg:bg-black/55 lg:p-7 lg:backdrop-blur-xl">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45">Your free account</p>
         <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-xs font-bold text-white/70">$0 forever</span>

@@ -74,17 +74,17 @@ export function AuthLayout({
             className="opacity-70"
           />
         ) : null}
-        {/* Edge blend; deepen it when a panel sits on top so the copy stays legible. */}
+        {/* Only a soft blend at the left seam where the panel meets the form
+            column — the animation itself stays vibrant, homepage-hero style. The
+            panel content carries its own contrast (dark glass), so no heavy scrim. */}
         <div
           className={
-            panel
-              ? 'absolute inset-0 bg-gradient-to-br from-black/80 via-black/45 to-black/75'
-              : animated
-                ? 'absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-transparent'
-                : 'absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60'
+            animated
+              ? 'absolute inset-0 bg-gradient-to-r from-background/50 via-transparent to-transparent'
+              : 'absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60'
           }
         />
-        {!animated && !panel && <div className="absolute inset-0 bg-black/40" />}
+        {!animated && <div className="absolute inset-0 bg-black/40" />}
         {/* Desktop: the value prop lives in the hero space, beside the form. */}
         {panel && (
           <div className="absolute inset-0 z-10 flex flex-col justify-center p-10 xl:p-14">
