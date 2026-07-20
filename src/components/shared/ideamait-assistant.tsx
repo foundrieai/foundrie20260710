@@ -61,6 +61,15 @@ export function IdeamaitAssistant({ context }: { context: IdeamaitAssistantConte
     }
   };
 
+  // First-run coach mark (once per user, per tool). BrandForge vs the LaunchCode suite.
+  const tool = context.currentPhaseName === 'BrandForge' ? 'brandforge' : 'launchcode';
+  const COACH_TEXT: Record<string, string> = {
+    launchcode:
+      "I'm Ideamait — your operator for building the company. Ask me to pressure-test an idea, unblock a phase, or decide what to tackle next. I can also handle general Help Desk requests.",
+    brandforge:
+      "I'm Ideamait — your brand strategist. Ask me to shape your positioning, find your voice, or plan what to publish. I can also handle general Help Desk requests.",
+  };
+
   const company = context.companyName && context.companyName !== 'your venture' ? context.companyName : 'your venture';
   const intro =
     context.currentPhaseName === 'Ideation'
@@ -74,6 +83,7 @@ export function IdeamaitAssistant({ context }: { context: IdeamaitAssistantConte
       onResumeUpdate={() => {}}
       chatAction={chatAction}
       introMessage={intro}
+      coachMark={{ key: tool, text: COACH_TEXT[tool] }}
     />
   );
 }

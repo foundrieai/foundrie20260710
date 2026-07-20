@@ -1309,6 +1309,10 @@ export default function ResumeOptimizerPage({ actions }: ResumeOptimizerPageProp
               setResult((prev: any) => ({ ...(prev || {}), optimizedResumeText: newResume }));
             }}
             chatAction={actions.counselorChat}
+            coachMark={{
+              key: 'resumait',
+              text: "I'm Ideamait — your career strategist. Ask me to sharpen your resume, tailor it to a role, or plan your next move. I can also handle general Help Desk requests.",
+            }}
           />
         </div>
       )}

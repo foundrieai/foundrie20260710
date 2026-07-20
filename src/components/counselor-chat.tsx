@@ -24,15 +24,39 @@ interface CounselorChatProps {
     chatAction: (input: any) => Promise<any>;
     /** Optional automated first greeting shown as the assistant's opening message. */
     introMessage?: string;
+    /**
+     * A one-time coach-mark bubble shown above the widget the first time a user
+     * enters a given tool, introducing what Ideamait can help with. `key`
+     * scopes "seen" per tool; `text` is the message.
+     */
+    coachMark?: { key: string; text: string };
 }
 
 /**
  * @fileOverview IDEAMAIT - Floating executive career counselor widget with Voice Engine and Document Upload.
  * Implements CAPITALIDEAS design system with brand red (#FF0033) accents.
  */
-export function CounselorChat({ resumeText, jobDescription, onResumeUpdate, chatAction, introMessage }: CounselorChatProps) {
+export function CounselorChat({ resumeText, jobDescription, onResumeUpdate, chatAction, introMessage, coachMark }: CounselorChatProps) {
     const { user, isUserLoading } = useUser();
     const [isOpen, setIsOpen] = useState(false);
+    const [showCoach, setShowCoach] = useState(false);
+
+    // First-run coach mark: show it once per (user, tool), a moment after mount,
+    // only while the chat is closed. Keyed by uid so it never crosses users.
+    const coachSeenKey = coachMark && user?.uid ? `foundrie:ideamait-intro:${user.uid}:${coachMark.key}` : null;
+    useEffect(() => {
+        if (!coachSeenKey || isOpen) return;
+        let seen = false;
+        try { seen = window.localStorage.getItem(coachSeenKey) === '1'; } catch {}
+        if (seen) return;
+        const t = setTimeout(() => setShowCoach(true), 1100);
+        return () => clearTimeout(t);
+    }, [coachSeenKey, isOpen]);
+
+    const dismissCoach = () => {
+        try { if (coachSeenKey) window.localStorage.setItem(coachSeenKey, '1'); } catch {}
+        setShowCoach(false);
+    };
     const [messages, setMessages] = useState<Message[]>(introMessage ? [{ role: 'model', content: introMessage }] : []);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -240,8 +264,41 @@ export function CounselorChat({ resumeText, jobDescription, onResumeUpdate, chat
     return (
         <div className="fixed bottom-0 right-0 z-[9999] pointer-events-none">
             <div className="relative pointer-events-auto p-6">
-                <Button 
-                    onClick={() => setIsOpen(!isOpen)}
+                {/* First-run coach mark, above the widget. Opaque so it is always readable. */}
+                {showCoach && coachMark && !isOpen && (
+                    <div className="absolute bottom-24 right-6 w-[300px] max-w-[78vw] animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="relative rounded-2xl border border-white/12 bg-[#1a1824] p-4 shadow-2xl">
+                            <button
+                                type="button"
+                                onClick={dismissCoach}
+                                aria-label="Dismiss"
+                                className="absolute right-2.5 top-2.5 grid h-6 w-6 place-items-center rounded-full text-white/45 transition hover:bg-white/10 hover:text-white/80"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                            <div className="flex items-start gap-2.5 pr-5">
+                                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 bg-black/30 text-[#FF3355]">
+                                    <Bot className="h-4 w-4" />
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#ff7a00]">Meet Ideamait</p>
+                                    <p className="mt-1 text-sm leading-6 text-white/85">{coachMark.text}</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsOpen(true); dismissCoach(); }}
+                                        className="mt-2.5 inline-flex items-center gap-1 text-sm font-bold text-[#FF3355] hover:text-[#ff5c78]"
+                                    >
+                                        Chat with Ideamait <span aria-hidden>&rarr;</span>
+                                    </button>
+                                </div>
+                            </div>
+                            {/* Tail pointing down toward the widget button. */}
+                            <div className="absolute -bottom-1.5 right-9 h-3 w-3 rotate-45 border-b border-r border-white/12 bg-[#1a1824]" />
+                        </div>
+                    </div>
+                )}
+                <Button
+                    onClick={() => { if (!isOpen) dismissCoach(); setIsOpen(!isOpen); }}
                     className={cn(
                         "h-14 w-14 rounded-lg shadow-[0_0_25px_rgba(255,0,51,0.4)] transition-all duration-500 transform hover:scale-110 active:scale-95 border-2 border-[#FF0033]/30",
                         isOpen ? "bg-zinc-900 text-[#FF0033] rotate-90" : "bg-[#FF0033] text-white"
